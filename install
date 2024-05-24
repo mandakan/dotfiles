@@ -1,0 +1,17 @@
+#!/bin/zsh
+
+# Install Oh My Zsh
+sh -c "$(curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh)"
+
+# Install homebrew
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+eval "$(/opt/homebrew/bin/brew shellenv)"
+brew update
+
+# Install from Brewfile
+brew tap homebrew/bundle
+brew bundle
+
+# Replace ~/.zshrc
+rm -rf $HOME/.zshrc
+ln -s $PWD/.zshrc $HOME/.zshrc
