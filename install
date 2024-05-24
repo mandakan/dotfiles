@@ -15,3 +15,10 @@ brew bundle
 # Replace ~/.zshrc
 rm -rf $HOME/.zshrc
 ln -s $PWD/.zshrc $HOME/.zshrc
+
+# Replace ~/.nanorc
+rm -rf $HOME/.nanorc
+ln -s $PWD/.nanorc $HOME/.nanorc
+
+# Enable syntax highlighting if Cellar is in non-standard location
+# echo 'include "'"$(brew --cellar nano)"'/*/share/nano/*.nanorc"' >> ~/.nanorc
