@@ -28,3 +28,8 @@ ${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k
 #rm -rf $HOME/.zshrc
 mv $HOME/.zshrc $HOME/.zshrc_dotfile_bkp
 ln -s $PWD/.zshrc $HOME/.zshrc
+
+# Replace ~/.p10k.zsh
+#rm -rf $HOME/.p10k.zsh
+mv $HOME/.p10k.zsh $HOME/.p10k.zsh_dotfile_bkp
+ln -s $PWD/.p10k.zsh $HOME/.p10k.zsh
