@@ -8,4 +8,7 @@ Basic dotfiles for macOS. Based on [Dries Vints](https://github.com/driesvints/d
 1. Clone this repo
 1. Run `install` to start the installation
 
+## Notes
+
+Defaults to powerlevel10k theme for zsh. See [here](https://github.com/romkatv/powerlevel10k?tab=readme-ov-file) for more info.
 
