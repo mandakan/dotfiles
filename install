@@ -12,13 +12,19 @@ brew update
 brew tap homebrew/bundle
 brew bundle
 
-# Replace ~/.zshrc
-rm -rf $HOME/.zshrc
-ln -s $PWD/.zshrc $HOME/.zshrc
-
 # Replace ~/.nanorc
-rm -rf $HOME/.nanorc
+#rm -rf $HOME/.nanorc
+mv $HOME/.nanorc $HOME/.nanorc_dotfile_bkp
 ln -s $PWD/.nanorc $HOME/.nanorc
 
 # Enable syntax highlighting if Cellar is in non-standard location
-# echo 'include "'"$(brew --cellar nano)"'/*/share/nano/*.nanorc"' >> ~/.nanorc
+echo 'include "'"$(brew --cellar nano)"'/*/share/nano/*.nanorc"' >> ~/.nanorc
+
+# Clone powerlevel10k zsh theme
+git clone --depth=1 https://github.com/romkatv/powerlevel10k.git
+${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k
+
+# Replace ~/.zshrc
+#rm -rf $HOME/.zshrc
+mv $HOME/.zshrc $HOME/.zshrc_dotfile_bkp
+ln -s $PWD/.zshrc $HOME/.zshrc
