@@ -15,6 +15,7 @@ brew 'wget'
 cask 'bruno'
 cask 'google-chrome'
 cask 'iterm2'
+cask 'obsidian'
 cask 'slack'
 cask 'visual-studio-code'
 
