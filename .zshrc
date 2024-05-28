@@ -80,7 +80,7 @@ zstyle ':omz:update' mode reminder  # just remind me to update when it's time
 # Custom plugins may be added to $ZSH_CUSTOM/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
-plugins=(git macos docker docker-compose iterm2 pyenv tmux vscode brew)
+plugins=(git macos docker docker-compose iterm2 pyenv vscode brew)
 
 source $ZSH/oh-my-zsh.sh
 
@@ -117,3 +117,7 @@ complete -o nospace -C /opt/homebrew/bin/terraform terraform
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+
+# Maven config
+export MAVEN_HOME="$HOME/.sdkman/candidates/maven/current"
+export MAVEN_CONFIG="$HOME/.m2"
