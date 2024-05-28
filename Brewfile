@@ -17,11 +17,9 @@ brew 'wget'
 
 # Casks
 cask 'bruno'
-cask 'google-chrome'
 cask 'iterm2'
 cask 'lm-studio'
 cask 'obsidian'
-cask 'slack'
 cask 'visual-studio-code'
 
 # Fun and creativity
