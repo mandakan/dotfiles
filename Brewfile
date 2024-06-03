@@ -1,3 +1,6 @@
+# Taps
+tap 'MisterTea/et'
+
 # Formulas
 brew 'colima'
 brew 'coreutils'
