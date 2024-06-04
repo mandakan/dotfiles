@@ -133,3 +133,6 @@ plugin=(
 
 eval "$(pyenv init -)"
 eval "$(pyenv virtualenv-init -)"
+
+# k9s
+export KUBE_EDITOR=my_fav_editor
