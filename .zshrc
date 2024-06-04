@@ -135,7 +135,7 @@ eval "$(pyenv init -)"
 eval "$(pyenv virtualenv-init -)"
 
 # k9s
-export KUBE_EDITOR=my_fav_editor
+export KUBE_EDITOR=nano
 
 # kubectl
 alias todev="kubectl config use-context arn:aws:eks:eu-north-1:148147037572:cluster/dev-eks-cluster"
