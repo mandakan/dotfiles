@@ -136,3 +136,7 @@ eval "$(pyenv virtualenv-init -)"
 
 # k9s
 export KUBE_EDITOR=my_fav_editor
+
+# kubectl
+alias todev="kubectl config use-context arn:aws:eks:eu-north-1:148147037572:cluster/dev-eks-cluster"
+alias toprod="kubectl config use-context arn:aws:eks:eu-north-1:625192528112:cluster/prod-eks-cluster"
