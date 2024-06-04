@@ -3,6 +3,7 @@ tap 'hashicorp/tap'
 tap 'MisterTea/et'
 
 # Formulas
+brew 'awscli'
 brew 'colima'
 brew 'coreutils'
 brew 'docker'
