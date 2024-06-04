@@ -121,3 +121,15 @@ complete -o nospace -C /opt/homebrew/bin/terraform terraform
 # Maven config
 export MAVEN_HOME="$HOME/.sdkman/candidates/maven/current"
 export MAVEN_CONFIG="$HOME/.m2"
+
+# PyEnv
+export PYENV_ROOT="$HOME/.pyenv"
+export PATH="$PYENV_ROOT/bin:$PATH"
+export PIPENV_PYTHON="$PYENV_ROOT/shims/python"
+
+plugin=(
+  pyenv
+)
+
+eval "$(pyenv init -)"
+eval "$(pyenv virtualenv-init -)"

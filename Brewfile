@@ -1,3 +1,6 @@
+# Taps
+tap 'MisterTea/et'
+
 # Formulas
 brew 'colima'
 brew 'coreutils'
@@ -8,6 +11,7 @@ brew 'git'
 brew 'gradle'
 brew 'mas'
 brew 'maven'
+brew 'MisterTea/et/et'
 brew 'nano'
 brew 'openjdk'
 brew 'pipenv'
