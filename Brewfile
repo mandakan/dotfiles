@@ -5,12 +5,8 @@ tap 'MisterTea/et'
 
 # Formulas
 brew 'awscli'
-brew 'colima'
 brew 'coreutils'
 brew 'derailed/k9s/k9s'
-brew 'docker'
-brew 'docker-compose'
-brew 'docker-buildx'
 brew 'git'
 brew 'gradle'
 brew 'hashicorp/tap/terraform'
