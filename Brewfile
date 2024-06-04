@@ -23,6 +23,7 @@ brew 'openjdk'
 brew 'pipenv'
 brew 'pyenv'
 brew 'pyenv-virtualenv'
+brew 'terragrunt'
 brew 'tig'
 brew 'wget'
 
