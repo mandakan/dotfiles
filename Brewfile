@@ -1,4 +1,5 @@
 # Taps
+tap 'hashicorp/tap'
 tap 'MisterTea/et'
 
 # Formulas
@@ -9,6 +10,7 @@ brew 'docker-compose'
 brew 'docker-buildx'
 brew 'git'
 brew 'gradle'
+brew 'hashicorp/tap/terraform'
 brew 'mas'
 brew 'maven'
 brew 'MisterTea/et/et'
