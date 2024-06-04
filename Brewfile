@@ -1,4 +1,5 @@
 # Taps
+tap 'derailed/k9s'
 tap 'hashicorp/tap'
 tap 'MisterTea/et'
 
@@ -6,6 +7,7 @@ tap 'MisterTea/et'
 brew 'awscli'
 brew 'colima'
 brew 'coreutils'
+brew 'derailed/k9s/k9s'
 brew 'docker'
 brew 'docker-compose'
 brew 'docker-buildx'
