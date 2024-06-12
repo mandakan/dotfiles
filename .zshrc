@@ -80,7 +80,7 @@ zstyle ':omz:update' mode reminder  # just remind me to update when it's time
 # Custom plugins may be added to $ZSH_CUSTOM/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
-plugins=(git macos docker docker-compose gradle iterm2 pipenv pyenv brew kubectl)
+plugins=(git macos docker docker-compose gradle iterm2 pipenv pyenv brew kubectl aliases)
 
 source $ZSH/oh-my-zsh.sh
 
