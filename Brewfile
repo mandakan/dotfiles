@@ -14,6 +14,7 @@ brew 'nano'
 brew 'pipenv'
 brew 'pyenv'
 brew 'pyenv-virtualenv'
+brew 'tig'
 brew 'wget'
 
 # Casks
