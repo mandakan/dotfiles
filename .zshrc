@@ -109,7 +109,6 @@ source $ZSH/oh-my-zsh.sh
 # Example aliases
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
-export PATH=/opt/homebrew/anaconda3/bin:$PATH
 
 PIPENV_VENV_IN_PROJECT=1
 autoload -U +X bashcompinit && bashcompinit
@@ -140,3 +139,6 @@ export KUBE_EDITOR=nano
 # kubectl
 alias todev="kubectl config use-context arn:aws:eks:eu-north-1:148147037572:cluster/dev-eks-cluster"
 alias toprod="kubectl config use-context arn:aws:eks:eu-north-1:625192528112:cluster/prod-eks-cluster"
+
+# Add homebrew path first
+eval $(/opt/homebrew/bin/brew shellenv)
