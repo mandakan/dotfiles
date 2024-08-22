@@ -25,6 +25,7 @@ brew 'wget'
 
 # Casks
 cask 'bruno'
+cask 'chatgpt'
 cask 'intellij-idea-ce'
 cask 'iterm2'
 cask 'lm-studio'
