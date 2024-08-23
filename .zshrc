@@ -142,3 +142,5 @@ alias toprod="kubectl config use-context arn:aws:eks:eu-north-1:625192528112:clu
 
 # Add homebrew path first
 eval $(/opt/homebrew/bin/brew shellenv)
+
+export PATH="/Applications/IntelliJ IDEA CE.app/Contents/MacOS:$PATH"
