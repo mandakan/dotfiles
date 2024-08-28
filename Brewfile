@@ -20,7 +20,7 @@ brew 'wget'
 # Casks
 cask 'arc'
 cask 'bruno'
-#cask 'google-chrome'
+cask 'google-chrome'
 cask 'iterm2'
 cask 'lm-studio'
 cask 'obsidian'
