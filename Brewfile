@@ -20,10 +20,11 @@ brew 'wget'
 # Casks
 cask 'arc'
 cask 'bruno'
-cask 'google-chrome'
+#cask 'google-chrome'
 cask 'iterm2'
 cask 'lm-studio'
 cask 'obsidian'
+cask 'raspberry-pi-imager'
 cask 'slack'
 cask 'visual-studio-code'
 
