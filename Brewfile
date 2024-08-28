@@ -24,6 +24,7 @@ brew 'tig'
 brew 'wget'
 
 # Casks
+cask 'arc'
 cask 'bruno'
 cask 'chatgpt'
 cask 'intellij-idea-ce'
