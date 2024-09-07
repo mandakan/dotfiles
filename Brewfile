@@ -17,6 +17,7 @@ brew 'nano'
 brew 'pipenv'
 brew 'pyenv'
 brew 'pyenv-virtualenv'
+brew 'rg'
 brew 'tig'
 brew 'wget'
 
