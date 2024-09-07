@@ -2,6 +2,7 @@
 tap 'MisterTea/et'
 
 # Formulas
+brew 'bat'
 brew 'colima'
 brew 'coreutils'
 brew 'docker'
