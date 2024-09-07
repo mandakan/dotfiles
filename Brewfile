@@ -5,6 +5,7 @@ tap 'MisterTea/et'
 
 # Formulas
 brew 'awscli'
+brew 'bat'
 brew 'coreutils'
 brew 'derailed/k9s/k9s'
 brew 'fzf'
