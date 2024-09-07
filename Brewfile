@@ -20,6 +20,7 @@ brew 'pipenv'
 brew 'pyenv'
 brew 'pyenv-virtualenv'
 brew 'terragrunt'
+brew 'thefuck'
 brew 'tig'
 brew 'wget'
 
