@@ -147,3 +147,6 @@ export PATH="/Applications/IntelliJ IDEA CE.app/Contents/MacOS:$PATH"
 
 # Setup fzf completions
 source <(fzf --zsh)
+
+# Setup fuck alias
+eval $(thefuck --alias)
