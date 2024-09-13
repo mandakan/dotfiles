@@ -129,3 +129,8 @@ plugin=(
 eval "$(pyenv init -)"
 eval "$(pyenv virtualenv-init -)"
 
+# Setup fzf completions
+source <(fzf --zsh)
+
+# Setup thefuck alias
+eval $(thefuck --alias)
