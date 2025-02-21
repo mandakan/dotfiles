@@ -11,6 +11,7 @@ brew update
 # Install from Brewfile
 brew tap homebrew/bundle
 brew bundle
+brew link nano
 
 # Replace ~/.nanorc
 #rm -rf $HOME/.nanorc
