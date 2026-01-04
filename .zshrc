@@ -80,7 +80,7 @@ zstyle ':omz:update' mode reminder  # just remind me to update when it's time
 # Custom plugins may be added to $ZSH_CUSTOM/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
-plugins=(git macos docker docker-compose iterm2 pipenv pyenv tmux vscode brew aliases)
+plugins=(git macos docker docker-compose iterm2 pipenv pyenv tmux vscode brew aliases gh)
 
 source $ZSH/oh-my-zsh.sh
 
@@ -134,3 +134,64 @@ source <(fzf --zsh)
 
 # Setup thefuck alias
 eval $(thefuck --alias)
+
+# Setup nvm
+export NVM_DIR="$HOME/.nvm"
+  [ -s "/opt/homebrew/opt/nvm/nvm.sh" ] && \. "/opt/homebrew/opt/nvm/nvm.sh"  # This loads nvm
+  [ -s "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm" ] && \. "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm"  # This loads nvm bash_completion
+
+# Added by LM Studio CLI (lms)
+export PATH="$PATH:/Users/mathias/.cache/lm-studio/bin"
+
+# --- Aider wrappers ---
+
+# Privat (OpenAI)
+aiderp() {
+  OPENAI_API_BASE="https://api.openai.com/v1" \
+  aider --model "openai/gpt-5" "$@"
+}
+
+# Jobb (egen OpenAI-kompatibel endpoint)
+aiderw() {
+  OPENAI_API_BASE="${OPENAI_API_BASE_WORK:?t.ex. https://llm.internal.company/v1}" \
+  OPENAI_API_KEY="${OPENAI_API_KEY_WORK:?Sätt OPENAI_API_KEY_WORK i din miljö}" \
+  aider --model "openai/gpt-5" "$@"
+}
+
+# Short alias
+alias ap="aiderp"
+alias aw="aiderw"
+
+# OpenHands CLI aliases
+openhandsw() {
+  cp ~/.openhands/settings.json.work ~/.openhands/settings.json && \
+  cp ~/.openhands/secrets.json.work ~/.openhands/secrets.json && \
+  uvx --python 3.12 --from openhands-ai openhands
+}
+
+openhandsp() {
+  cp ~/.openhands/settings.json.private ~/.openhands/settings.json \
+  && cp ~/.openhands/secrets.json.private ~/.openhands/secrets.json \
+  && uvx --python 3.12 --from openhands-ai openhands
+}
+
+openhandsguiw() {
+  cp ~/.openhands/settings.json.work ~/.openhands/settings.json && \
+  cp ~/.openhands/secrets.json.work ~/.openhands/secrets.json && \
+  uvx --python 3.12 --from openhands-ai openhands serve
+}
+
+openhandsguip() {
+  cp ~/.openhands/settings.json.private ~/.openhands/settings.json && \
+  cp ~/.openhands/secrets.json.private ~/.openhands/secrets.json && \
+  uvx --python 3.12 --from openhands-ai openhands serve
+}
+
+alias ohw="openhandsw"
+alias ohp="openhandsp"
+alias ohgw="openhandsguiw"
+alias ohgp="openhandsguip"
+
+export ANDROID_HOME="$HOME/Library/Android/sdk"
+export PATH="$ANDROID_HOME/emulator:$ANDROID_HOME/platform-tools:$ANDROID_HOME/cmdline-tools/latest/bin:$PATH"
+
