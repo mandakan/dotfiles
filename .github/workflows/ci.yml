@@ -1,0 +1,37 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  # Runs every hook from .pre-commit-config.yaml against every file.
+  # Catches secrets (gitleaks), private keys, shell-script issues, YAML/JSON
+  # parse errors, and formatting drift — the same checks that run locally.
+  pre-commit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: pre-commit/action@v3.0.1
+        with:
+          extra_args: --all-files --show-diff-on-failure
+
+  # Full git-history scan — catches secrets that may have landed in older
+  # commits and were never cleaned up. The pre-commit hook above only scans
+  # the diff, so this is the belt-and-suspenders check.
+  gitleaks-history:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

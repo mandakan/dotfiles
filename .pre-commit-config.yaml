@@ -1,0 +1,34 @@
+# Run on every commit:  git commit
+# Run against the whole repo:  pre-commit run --all-files
+# Bump hook versions:  pre-commit autoupdate
+#
+# To install hooks into this clone:
+#   pre-commit install
+
+repos:
+  # ─── Secret scanning ─────────────────────────────────────────────────
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.21.2
+    hooks:
+      - id: gitleaks
+
+  # ─── General hygiene ─────────────────────────────────────────────────
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: detect-private-key          # SSH / PEM / PGP keys
+      - id: check-merge-conflict
+      - id: check-added-large-files     # refuses anything >500kB by default
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+      - id: check-executables-have-shebangs
+      - id: check-shebang-scripts-are-executable
+      - id: check-yaml
+      - id: check-json
+
+  # ─── Shell script linting ────────────────────────────────────────────
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.10.0.1
+    hooks:
+      - id: shellcheck
+        args: [--severity=warning]

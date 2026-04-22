@@ -1,1 +1,31 @@
+# macOS
+.DS_Store
+
+# brew bundle
 Brewfile.lock.json
+
+# Claude Code: defensively block secrets / per-machine / ephemeral state that
+# can end up under this repo's claude/ subdir if someone copies in more files.
+claude/**/*.local.json
+claude/**/stats-cache.json
+claude/**/mcp-needs-auth-cache.json
+claude/**/settings.json.bak
+claude/history.jsonl
+claude/projects/
+claude/sessions/
+claude/paste-cache/
+claude/file-history/
+claude/tasks/
+claude/plans/
+claude/shell-snapshots/
+claude/statsig/
+claude/cache/
+claude/debug/
+claude/ide/
+claude/backups/
+claude/downloads/
+claude/session-env/
+claude/plugins/
+
+# Dotfiles install artifacts
+.dotfiles-backup/

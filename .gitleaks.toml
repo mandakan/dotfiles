@@ -1,0 +1,14 @@
+# gitleaks config — extends the default ruleset with a small allowlist
+# for files that legitimately contain high-entropy strings.
+#
+# Test:  gitleaks detect --config .gitleaks.toml --source . --verbose
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "known-safe high-entropy content"
+paths = [
+  # SHA-256 of the RTK hook script — literal file integrity hash, not a secret.
+  '''claude/hooks/\.rtk-hook\.sha256''',
+]
