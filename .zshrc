@@ -1,3 +1,6 @@
+# Homebrew (Apple Silicon)
+eval "$(/opt/homebrew/bin/brew shellenv)"
+
 # Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
 # Initialization code that may require console input (password prompts, [y/n]
 # confirmations, etc.) must go above this block; everything else may go below.
@@ -6,7 +9,7 @@ if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]
 fi
 
 # If you come from bash you might have to change your $PATH.
-export PATH=$HOME/bin:/usr/local/bin:$PATH
+export PATH="$HOME/bin:$PATH"
 
 # Path to your oh-my-zsh installation.
 export ZSH="$HOME/.oh-my-zsh"
@@ -114,7 +117,6 @@ fi
 # Example aliases
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
-export PATH=/opt/homebrew/anaconda3/bin:$PATH
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
@@ -132,55 +134,6 @@ export NVM_DIR="$HOME/.nvm"
 
 # Added by LM Studio CLI (lms)
 export PATH="$PATH:/Users/mathias/.cache/lm-studio/bin"
-
-# --- Aider wrappers ---
-
-# Privat (OpenAI)
-aiderp() {
-  OPENAI_API_BASE="https://api.openai.com/v1" \
-  aider --model "openai/gpt-5" "$@"
-}
-
-# Jobb (egen OpenAI-kompatibel endpoint)
-aiderw() {
-  OPENAI_API_BASE="${OPENAI_API_BASE_WORK:?t.ex. https://llm.internal.company/v1}" \
-  OPENAI_API_KEY="${OPENAI_API_KEY_WORK:?Sätt OPENAI_API_KEY_WORK i din miljö}" \
-  aider --model "openai/gpt-5" "$@"
-}
-
-# Short alias
-alias ap="aiderp"
-alias aw="aiderw"
-
-# OpenHands CLI aliases
-openhandsw() {
-  cp ~/.openhands/settings.json.work ~/.openhands/settings.json && \
-  cp ~/.openhands/secrets.json.work ~/.openhands/secrets.json && \
-  uvx --python 3.12 --from openhands-ai openhands
-}
-
-openhandsp() {
-  cp ~/.openhands/settings.json.private ~/.openhands/settings.json \
-  && cp ~/.openhands/secrets.json.private ~/.openhands/secrets.json \
-  && uvx --python 3.12 --from openhands-ai openhands
-}
-
-openhandsguiw() {
-  cp ~/.openhands/settings.json.work ~/.openhands/settings.json && \
-  cp ~/.openhands/secrets.json.work ~/.openhands/secrets.json && \
-  uvx --python 3.12 --from openhands-ai openhands serve
-}
-
-openhandsguip() {
-  cp ~/.openhands/settings.json.private ~/.openhands/settings.json && \
-  cp ~/.openhands/secrets.json.private ~/.openhands/secrets.json && \
-  uvx --python 3.12 --from openhands-ai openhands serve
-}
-
-alias ohw="openhandsw"
-alias ohp="openhandsp"
-alias ohgw="openhandsguiw"
-alias ohgp="openhandsguip"
 
 export ANDROID_HOME="$HOME/Library/Android/sdk"
 export PATH="$ANDROID_HOME/emulator:$ANDROID_HOME/platform-tools:$ANDROID_HOME/cmdline-tools/latest/bin:$PATH"
