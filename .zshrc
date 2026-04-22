@@ -95,12 +95,13 @@ source $ZSH/oh-my-zsh.sh
 # You may need to manually set your language environment
 # export LANG=en_US.UTF-8
 
-# Preferred editor for local and remote sessions
-# if [[ -n $SSH_CONNECTION ]]; then
-#   export EDITOR='vim'
-# else
-#   export EDITOR='mvim'
-# fi
+# Preferred editor — brew's nano is substantially newer than macOS's bundled
+# /usr/bin/nano (2.0.6). $HOMEBREW_PREFIX is set by `brew shellenv` in
+# /etc/zprofile, so we don't fork `brew --prefix` on every shell startup.
+if [[ -n ${HOMEBREW_PREFIX:-} ]]; then
+    export EDITOR="$HOMEBREW_PREFIX/bin/nano"
+    export VISUAL="$EDITOR"
+fi
 
 # Compilation flags
 # export ARCHFLAGS="-arch x86_64"
