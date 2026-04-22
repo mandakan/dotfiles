@@ -5,6 +5,10 @@
 # To install hooks into this clone:
 #   pre-commit install
 
+# Read-only by design (integrity hash for the RTK hook); no linter should
+# try to rewrite it, and it's separately allowlisted in .gitleaks.toml.
+exclude: '^claude/hooks/\.rtk-hook\.sha256$'
+
 repos:
   # ─── Secret scanning ─────────────────────────────────────────────────
   - repo: https://github.com/gitleaks/gitleaks
@@ -31,4 +35,6 @@ repos:
     rev: v0.10.0.1
     hooks:
       - id: shellcheck
-        args: [--severity=warning]
+        args: [--severity=error]
+        # shellcheck doesn't understand zsh — skip zsh-only files.
+        exclude: '^(\.zshrc|\.p10k\.zsh)$'
