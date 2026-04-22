@@ -4,4 +4,7 @@ set cutfromcursor
 set softwrap
 set tabsize 2
 
-include "/opt/homebrew/Cellar/nano/*/share/nano/*.nanorc"
+# Syntax highlighting — brew's nano cellar path differs between Apple Silicon
+# (/opt/homebrew) and Intel (/usr/local) and is version-specific. The install
+# script generates the file below so the include stays portable.
+include "~/.nano-syntax.nanorc"
