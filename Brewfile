@@ -6,9 +6,9 @@
 #   brew bundle cleanup --file=~/Brewfile --force
 
 # ─── Taps ────────────────────────────────────────────────────────────────
+# homebrew/bundle and homebrew/services were absorbed into core Homebrew
+# in early 2025 — no longer tap them, the commands work out of the box.
 tap "dopplerhq/cli"
-tap "homebrew/bundle"
-tap "homebrew/services"
 tap "infisical/get-cli"
 tap "mistertea/et"
 
