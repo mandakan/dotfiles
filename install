@@ -3,12 +3,16 @@
 # Safe to re-run: every step is idempotent.
 #
 # Flow:
-#   1. Homebrew (if missing) + Brewfile
-#   2. Oh My Zsh (if missing) + powerlevel10k theme
-#   3. Symlink dotfiles into $HOME (existing non-symlinks are backed up)
-#   4. Symlink ~/.claude config so Claude Code picks up settings/hooks/statusline
+#   1. Homebrew (if missing)
+#   2. Oh My Zsh (if missing) + powerlevel10k + zsh plugins
+#   3. Claude Code CLI (if missing)
+#   4. Symlink shell + editor dotfiles into $HOME
+#   5. Symlink ~/.claude config (settings, hooks, statusline)
+#   6. brew bundle
+#   7. pre-commit install (hook envs built lazily on first commit)
 #
-# One-off first run, or re-run anytime to reconcile drift.
+# Idempotent — re-run anytime to reconcile drift.
+# Existing non-symlink targets are backed up to ~/.dotfiles-backup/<ts>/.
 
 set -euo pipefail
 
@@ -72,14 +76,21 @@ clone_once https://github.com/romkatv/powerlevel10k.git          "$ZSH_CUSTOM/th
 clone_once https://github.com/zsh-users/zsh-autosuggestions.git  "$ZSH_CUSTOM/plugins/zsh-autosuggestions"
 clone_once https://github.com/zsh-users/zsh-syntax-highlighting.git "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting"
 
-# ─── 3. Symlink shell + editor dotfiles ──────────────────────────────────
+# ─── 3. Claude Code CLI ──────────────────────────────────────────────────
+
+if ! command -v claude >/dev/null 2>&1; then
+    log "installing Claude Code CLI"
+    curl -fsSL https://claude.ai/install.sh | bash
+fi
+
+# ─── 4. Symlink shell + editor dotfiles ──────────────────────────────────
 
 link "$DOTFILES/.zshrc"    "$HOME/.zshrc"
 link "$DOTFILES/.p10k.zsh" "$HOME/.p10k.zsh"
 link "$DOTFILES/.nanorc"   "$HOME/.nanorc"
 link "$DOTFILES/Brewfile"  "$HOME/Brewfile"
 
-# ─── 4. Claude Code config ───────────────────────────────────────────────
+# ─── 5. Claude Code config ───────────────────────────────────────────────
 
 link "$DOTFILES/claude/settings.json"  "$HOME/.claude/settings.json"
 link "$DOTFILES/claude/CLAUDE.md"      "$HOME/.claude/CLAUDE.md"
@@ -87,17 +98,23 @@ link "$DOTFILES/claude/RTK.md"         "$HOME/.claude/RTK.md"
 link "$DOTFILES/claude/statusline.sh"  "$HOME/.claude/statusline.sh"
 link "$DOTFILES/claude/hooks/rtk-rewrite.sh" "$HOME/.claude/hooks/rtk-rewrite.sh"
 
-# ─── 5. Brewfile install ─────────────────────────────────────────────────
+# ─── 6. Brewfile install ─────────────────────────────────────────────────
 
 log "running brew bundle (this may take a while)"
 brew bundle --file="$DOTFILES/Brewfile"
 
-# ─── 6. pre-commit hooks (if the tool is available) ──────────────────────
+# ─── 7. pre-commit hooks ─────────────────────────────────────────────────
+# Only register the git hook — don't build hook environments yet. Eager env
+# setup (--install-hooks) invokes `python`, which can fail when the current
+# shell's $PATH still holds stale pyenv shims from a previous .zshrc. Hook
+# envs build lazily on the first commit from a fresh shell, which sidesteps
+# the issue entirely.
 
 if command -v pre-commit >/dev/null 2>&1 && [[ -f $DOTFILES/.pre-commit-config.yaml ]]; then
-    log "installing pre-commit hooks into $DOTFILES"
-    (cd "$DOTFILES" && pre-commit install --install-hooks)
+    log "installing pre-commit git hook into $DOTFILES"
+    (cd "$DOTFILES" && pre-commit install)
 fi
 
 log "done."
 [[ -d $BACKUP ]] && warn "previous files were backed up to $BACKUP"
+log "start a fresh shell (or \`exec zsh\`) to pick up the new environment."
