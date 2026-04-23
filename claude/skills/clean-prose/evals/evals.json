@@ -1,0 +1,63 @@
+{
+  "skill_name": "clean-prose",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "This draft feels off — can you review it for LLM slop and clean it up? The file is at /Users/mathias/.claude/skills/clean-prose/evals/test-fixture-dirty.txt",
+      "expected_output": "The file is rewritten with: em dashes replaced by ASCII dashes, curly quotes replaced by straight quotes, all slop phrases removed or rewritten, and a brief report of what changed.",
+      "files": ["/Users/mathias/.claude/skills/clean-prose/evals/test-fixture-dirty.txt"],
+      "expectations": [
+        "cleaned.txt contains no em dash characters (U+2014 —)",
+        "cleaned.txt contains no curly double quote characters (U+201C U+201D)",
+        "cleaned.txt does not contain the word 'delve' or its variants (delves, delved, delving)",
+        "cleaned.txt does not contain 'paradigm shift'",
+        "cleaned.txt does not contain 'tapestry'",
+        "cleaned.txt does not contain 'game-changer'",
+        "cleaned.txt does not contain 'leverage' or 'leveraging'",
+        "cleaned.txt does not contain 'seamless' or 'seamlessly'",
+        "cleaned.txt does not contain 'holistic'",
+        "cleaned.txt does not contain 'it\\'s worth noting' or 'it is worth noting'",
+        "cleaned.txt does not contain 'state-of-the-art'",
+        "A report.txt file exists with a summary of changes made"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Write a short paragraph (4-6 sentences) summarising the Zeitpyramide concept and why it matters to the Netlight sustainability initiative. This will be used in a Partner conversation.",
+      "expected_output": "A paragraph with no em dashes, curly quotes, ellipsis characters, or slop phrases. Plain ASCII punctuation throughout.",
+      "files": [],
+      "expectations": [
+        "paragraph.txt contains no em dash characters (U+2014 —)",
+        "paragraph.txt contains no curly quote characters of any kind (U+201C U+201D U+2018 U+2019)",
+        "paragraph.txt contains no ellipsis character (U+2026 …)",
+        "paragraph.txt does not contain 'delve' or variants",
+        "paragraph.txt does not contain 'leverage' or variants",
+        "paragraph.txt does not contain 'seamless' or 'seamlessly'",
+        "paragraph.txt does not contain 'robust'",
+        "paragraph.txt does not contain 'holistic'",
+        "paragraph.txt does not contain 'paradigm shift'",
+        "paragraph.txt does not contain 'it\\'s worth noting'",
+        "paragraph.txt is a coherent paragraph about the Zeitpyramide concept (4-6 sentences)"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Clean up the following text — fix the em dashes, curly quotes, and any AI-sounding phrases:\n\n\"In today's fast-paced world, it's worth noting that sustainable high performance isn't just a 'nice-to-have' — it's paramount. By leveraging a holistic approach, organisations can harness the synergy between wellbeing and impact, ultimately unlocking their consultants' full potential.\"",
+      "expected_output": "The text is rewritten with straight quotes, ASCII dashes, and all flagged phrases removed or rewritten in plain language.",
+      "files": [],
+      "expectations": [
+        "Output contains no em dash characters (U+2014 —)",
+        "Output contains no curly single quote characters (U+2018 U+2019)",
+        "Output does not contain 'it\\'s worth noting' or 'it is worth noting'",
+        "Output does not contain 'in today\\'s fast-paced world' or similar filler opener",
+        "Output does not contain 'paramount'",
+        "Output does not contain 'leveraging' or 'leverage'",
+        "Output does not contain 'holistic'",
+        "Output does not contain 'synergy'",
+        "Output does not contain 'ultimately'",
+        "Output does not contain 'unlocking'",
+        "Output preserves the core meaning: sustainable high performance matters for consultants"
+      ]
+    }
+  ]
+}

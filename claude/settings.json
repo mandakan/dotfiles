@@ -12,6 +12,11 @@
       }
     ]
   },
+  "statusLine": {
+    "type": "command",
+    "command": "~/.claude/statusline.sh",
+    "padding": 0
+  },
   "enabledPlugins": {
     "clangd-lsp@claude-plugins-official": true,
     "wiki-skills@wiki-skills": true
@@ -24,10 +29,5 @@
       }
     }
   },
-  "effortLevel": "high",
-  "statusLine": {
-    "type": "command",
-    "command": "~/.claude/statusline.sh",
-    "padding": 0
-  }
+  "effortLevel": "high"
 }

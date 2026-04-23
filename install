@@ -98,6 +98,7 @@ link "$DOTFILES/claude/CLAUDE.md"      "$HOME/.claude/CLAUDE.md"
 link "$DOTFILES/claude/RTK.md"         "$HOME/.claude/RTK.md"
 link "$DOTFILES/claude/statusline.sh"  "$HOME/.claude/statusline.sh"
 link "$DOTFILES/claude/hooks/rtk-rewrite.sh" "$HOME/.claude/hooks/rtk-rewrite.sh"
+link "$DOTFILES/claude/skills/clean-prose" "$HOME/.claude/skills/clean-prose"
 
 # ─── 6. Brewfile install ─────────────────────────────────────────────────
 
