@@ -1,5 +1,5 @@
-# Homebrew (Apple Silicon)
-eval "$(/opt/homebrew/bin/brew shellenv)"
+# Homebrew (Apple Silicon) -- guarded so this file works on Linux hosts too.
+[[ -x /opt/homebrew/bin/brew ]] && eval "$(/opt/homebrew/bin/brew shellenv)"
 
 # Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
 # Initialization code that may require console input (password prompts, [y/n]
@@ -121,11 +121,21 @@ fi
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 
-# Setup fzf completions
-source <(fzf --zsh)
+# Setup fzf completions. macOS brew fzf supports `fzf --zsh` (>= 0.48); Ubuntu's
+# apt fzf (0.44 on 24.04) is older, so fall back to its packaged example files.
+if command -v fzf >/dev/null 2>&1; then
+    if fzf --zsh >/dev/null 2>&1; then
+        source <(fzf --zsh)
+    elif [[ -d /usr/share/doc/fzf/examples ]]; then
+        source /usr/share/doc/fzf/examples/key-bindings.zsh
+        source /usr/share/doc/fzf/examples/completion.zsh
+    fi
+fi
 
 # Setup thefuck alias
-eval $(thefuck --alias)
+if command -v thefuck >/dev/null 2>&1; then
+    eval "$(thefuck --alias)"
+fi
 
 # Setup nvm
 export NVM_DIR="$HOME/.nvm"
