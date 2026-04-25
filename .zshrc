@@ -132,9 +132,9 @@ if command -v fzf >/dev/null 2>&1; then
     fi
 fi
 
-# Setup thefuck alias
-if command -v thefuck >/dev/null 2>&1; then
-    eval "$(thefuck --alias)"
+# Setup pay-respects alias (replaces thefuck; binds `f` by default)
+if command -v pay-respects >/dev/null 2>&1; then
+    eval "$(pay-respects zsh --alias)"
 fi
 
 # Setup nvm

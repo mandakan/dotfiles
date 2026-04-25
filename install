@@ -63,7 +63,26 @@ case "$OS" in
         log "installing base packages via apt"
         sudo apt-get update -qq
         sudo apt-get install -y --no-install-recommends \
-            zsh git curl nano fzf thefuck pre-commit ca-certificates
+            zsh git curl nano fzf pre-commit ca-certificates
+
+        # pay-respects (replaces thefuck, which is broken on Python 3.12+).
+        # No apt package; install the official .deb from the GitHub release.
+        if ! command -v pay-respects >/dev/null 2>&1; then
+            arch=$(dpkg --print-architecture)
+            case "$arch" in
+                amd64|arm64|armhf|i386) ;;
+                *) die "no pay-respects .deb for arch: $arch" ;;
+            esac
+            log "installing pay-respects ($arch) from GitHub release"
+            tmp=$(mktemp -d)
+            url=$(curl -fsSL https://api.github.com/repos/iffse/pay-respects/releases/latest \
+                | grep -oE "\"browser_download_url\": \"[^\"]*_${arch}\\.deb\"" \
+                | head -1 | cut -d'"' -f4)
+            [[ -n $url ]] || die "could not find pay-respects .deb for $arch"
+            curl -fsSL -o "$tmp/pay-respects.deb" "$url"
+            sudo dpkg -i "$tmp/pay-respects.deb"
+            rm -rf "$tmp"
+        fi
         ;;
     *)
         die "unsupported OS: $OS"

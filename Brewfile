@@ -11,6 +11,7 @@
 tap "dopplerhq/cli"
 tap "infisical/get-cli"
 tap "mistertea/et"
+tap "timescam/homebrew-tap"
 
 # ─── CLI tools ───────────────────────────────────────────────────────────
 brew "bat"
@@ -25,7 +26,7 @@ brew "pre-commit"
 brew "ripgrep"
 brew "rtk"
 brew "socat"
-brew "thefuck"
+brew "timescam/homebrew-tap/pay-respects"
 brew "tig"
 brew "tmux"
 brew "wget"
