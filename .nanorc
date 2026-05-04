@@ -4,7 +4,7 @@ set cutfromcursor
 set softwrap
 set tabsize 2
 
-# Syntax highlighting — brew's nano cellar path differs between Apple Silicon
-# (/opt/homebrew) and Intel (/usr/local) and is version-specific. The install
-# script generates the file below so the include stays portable.
-include "~/.nano-syntax.nanorc"
+# Syntax highlighting is appended at install time. Nano 9.0+ rejects `include`
+# inside an included file, so we can't use indirection -- the install script
+# writes ~/.nanorc as a copy of this file with a platform-specific include
+# line appended.
