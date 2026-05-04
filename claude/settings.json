@@ -19,7 +19,8 @@
   },
   "enabledPlugins": {
     "clangd-lsp@claude-plugins-official": true,
-    "wiki-skills@wiki-skills": true
+    "wiki-skills@wiki-skills": true,
+    "frontend-design@claude-plugins-official": true
   },
   "extraKnownMarketplaces": {
     "wiki-skills": {
@@ -29,5 +30,20 @@
       }
     }
   },
-  "effortLevel": "high"
+  "effortLevel": "high",
+  "agentPushNotifEnabled": true,
+  "permissions": {
+    "additionalDirectories": ["~/.claude-tmp"],
+    "allow": [
+      "Read(~/.claude-tmp/**)",
+      "Write(~/.claude-tmp/**)",
+      "Edit(~/.claude-tmp/**)",
+      "Bash(mkdir -p ~/.claude-tmp/*)",
+      "Bash(ls ~/.claude-tmp/**)",
+      "Bash(cat ~/.claude-tmp/**)",
+      "Bash(rm ~/.claude-tmp/**)",
+      "Bash(mv ~/.claude-tmp/** ~/.claude-tmp/**)",
+      "Bash(cp ~/.claude-tmp/** ~/.claude-tmp/**)"
+    ]
+  }
 }
