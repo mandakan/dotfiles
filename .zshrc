@@ -135,6 +135,41 @@ fi
 # Setup pay-respects alias (replaces thefuck; binds `f` by default)
 if command -v pay-respects >/dev/null 2>&1; then
     eval "$(pay-respects zsh --alias)"
+    # Workaround for "__pr_base:1: bad substitution" with powerlevel10k:
+    # the generated hook runs `print -P "$PROMPT"`, which chokes on p10k's
+    # prompt internals. Use a static prefix instead, same as the upstream
+    # fix (iffse/pay-respects#133). Remove this override once a release
+    # newer than 0.8.8 ships and switch to: pay-respects zsh --prompt-prefix '❯'
+    function __pr_base() {
+        _PR_MODE="$1" _PR_PREFIX="❯ " _PR_LAST_COMMAND="$2" _PR_ALIAS="`alias`" _PR_SHELL="zsh" "pay-respects"
+    }
+
+    # Weekly check for new pay-respects releases (omz-update-style toast).
+    # Never blocks the prompt: shows the cached result from a previous check,
+    # then refreshes the cache in a disowned background job at most once per
+    # 7 days. Cache line format: "<epoch-of-check> <latest-version>".
+    () {
+        local cache="${XDG_CACHE_HOME:-$HOME/.cache}/pay-respects-update-check"
+        local now=$(date +%s) last=0 latest=""
+        [[ -r $cache ]] && read -r last latest < "$cache"
+
+        local installed=$(pay-respects --version 2>/dev/null | awk '{print $2}')
+        if [[ -n $latest && -n $installed && $latest != $installed ]]; then
+            print -P "%F{yellow}pay-respects $latest is out (installed: $installed) -- run ~/dotfiles/install --check-updates for the bump checklist%f"
+        fi
+
+        if (( now - last > 7 * 24 * 3600 )); then
+            {
+                mkdir -p "${cache:h}"
+                local tag=$(curl -fsSL --max-time 10 \
+                    https://api.github.com/repos/iffse/pay-respects/releases/latest 2>/dev/null \
+                    | sed -n 's/.*"tag_name": *"v\([0-9.][0-9.]*\)".*/\1/p')
+                # On fetch failure keep the old version but still stamp the
+                # time, so a dead network can't turn this into a per-shell hit.
+                print "$now ${tag:-$latest}" > "$cache"
+            } &> /dev/null &|
+        fi
+    }
 fi
 
 # Setup nvm

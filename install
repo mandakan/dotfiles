@@ -76,6 +76,42 @@ write_with_suffix() {
     log "wrote  $dst (from $src + platform suffix)"
 }
 
+# ─── 0. Flags ─────────────────────────────────────────────────────────────
+# Pinned pay-respects release. Defined up here (not in section 1b) so
+# --check-updates can run before any install steps have side effects.
+PR_VERSION=0.8.8
+
+# `./install --check-updates`: compare the pinned pay-respects version against
+# the latest tagged GitHub release and print the bump checklist if it's stale.
+# The sed pattern only matches `v<digits>` tags, so the moving `nightly` tag
+# can never be reported as an update. Exits without installing anything.
+if [[ ${1:-} == --check-updates ]]; then
+    latest=$(curl -fsSL --max-time 10 \
+        https://api.github.com/repos/iffse/pay-respects/releases/latest \
+        | sed -n 's/.*"tag_name": *"v\([0-9.][0-9.]*\)".*/\1/p')
+    [[ -n $latest ]] || die "could not determine latest pay-respects release"
+
+    if [[ $latest == "$PR_VERSION" ]]; then
+        log "ok    pay-respects $PR_VERSION is the latest release"
+        exit 0
+    fi
+
+    warn "pay-respects $latest is out (pinned: $PR_VERSION)"
+    printf '\nBump checklist:\n'
+    printf '  1. Set PR_VERSION=%s in this script\n' "$latest"
+    printf '  2. Update the four sha256 checksums; compute each with:\n'
+    for t in aarch64-apple-darwin x86_64-apple-darwin \
+             aarch64-unknown-linux-musl x86_64-unknown-linux-musl; do
+        printf '       curl -fsSL https://github.com/iffse/pay-respects/releases/download/v%s/pay-respects-%s-%s.tar.zst | shasum -a 256\n' \
+            "$latest" "$latest" "$t"
+    done
+    printf '  3. In .zshrc, delete the __pr_base override (p10k workaround) and\n'
+    printf '     switch the eval to: pay-respects zsh --alias --prompt-prefix '\''❯'\''\n'
+    printf '     (verify the flag against the release notes first)\n'
+    printf '  4. Re-run ./install\n'
+    exit 1
+fi
+
 # ─── 1. System packages ──────────────────────────────────────────────────
 
 case "$OS" in
@@ -91,31 +127,65 @@ case "$OS" in
         log "installing base packages via apt"
         sudo apt-get update -qq
         sudo apt-get install -y --no-install-recommends \
-            zsh git curl nano fzf pre-commit ca-certificates
-
-        # pay-respects (replaces thefuck, which is broken on Python 3.12+).
-        # No apt package; install the official .deb from the GitHub release.
-        if ! command -v pay-respects >/dev/null 2>&1; then
-            arch=$(dpkg --print-architecture)
-            case "$arch" in
-                amd64|arm64|armhf|i386) ;;
-                *) die "no pay-respects .deb for arch: $arch" ;;
-            esac
-            log "installing pay-respects ($arch) from GitHub release"
-            tmp=$(mktemp -d)
-            url=$(curl -fsSL https://api.github.com/repos/iffse/pay-respects/releases/latest \
-                | grep -oE "\"browser_download_url\": \"[^\"]*_${arch}\\.deb\"" \
-                | head -1 | cut -d'"' -f4)
-            [[ -n $url ]] || die "could not find pay-respects .deb for $arch"
-            curl -fsSL -o "$tmp/pay-respects.deb" "$url"
-            sudo dpkg -i "$tmp/pay-respects.deb"
-            rm -rf "$tmp"
-        fi
+            zsh git curl nano fzf pre-commit ca-certificates zstd
         ;;
     *)
         die "unsupported OS: $OS"
         ;;
 esac
+
+# ─── 1b. pay-respects (replaces thefuck, which broke on Python 3.12+) ────
+# Static binary, pinned version, sha256-verified. Installs to ~/.local/bin
+# (already on PATH via .zshrc) so no sudo and no platform-specific package
+# manager dance. The previous brew-tap path pulled `nightly` builds; the
+# previous apt path required dpkg + sudo. Same code path on macOS/Linux.
+# PR_VERSION is pinned in section 0 (so --check-updates runs install-free).
+
+install_pay_respects() {
+    local bindir="$HOME/.local/bin" target="$HOME/.local/bin/pay-respects"
+    if [[ -x $target ]] && "$target" --version 2>/dev/null | grep -q " $PR_VERSION\$"; then
+        log "ok    pay-respects $PR_VERSION"
+        return
+    fi
+
+    # Triple + sha256 picked together so we never download an arch we can't verify.
+    local triple want
+    case "$OS-$(uname -m)" in
+        Darwin-arm64)
+            triple=aarch64-apple-darwin
+            want=e834e928dcaf9cd72a99478bb61e0630ba76e32c7b228eb3a7be9c5f404cd548 ;;
+        Darwin-x86_64)
+            triple=x86_64-apple-darwin
+            want=64c30e1a62605279abf219193c53bf251687ea419a0c99d2e15ae8b5b6a58587 ;;
+        Linux-aarch64|Linux-arm64)
+            triple=aarch64-unknown-linux-musl
+            want=c63ce37f25f4b8f7fc8ffd46955a22cb05314991560822f7de77e8190d3d9ca4 ;;
+        Linux-x86_64)
+            triple=x86_64-unknown-linux-musl
+            want=20bb89e9fa114b20ce78b57ece77134e79e314fd0d5086e9695c0de7f98ccaaf ;;
+        *) die "no pay-respects binary for $OS-$(uname -m)" ;;
+    esac
+
+    local url="https://github.com/iffse/pay-respects/releases/download/v${PR_VERSION}/pay-respects-${PR_VERSION}-${triple}.tar.zst"
+    log "installing pay-respects $PR_VERSION ($triple)"
+
+    local tmp
+    tmp=$(mktemp -d)
+    curl -fsSL -o "$tmp/pr.tar.zst" "$url"
+    local got
+    got=$(shasum -a 256 "$tmp/pr.tar.zst" | awk '{print $1}')
+    if [[ $got != "$want" ]]; then
+        rm -rf "$tmp"
+        die "pay-respects checksum mismatch: got $got, want $want"
+    fi
+    tar -xf "$tmp/pr.tar.zst" -C "$tmp"
+    mkdir -p "$bindir"
+    install -m 0755 "$tmp/pay-respects" "$bindir/pay-respects"
+    install -m 0755 "$tmp/_pay-respects-module-100-runtime-rules" "$bindir/"
+    install -m 0755 "$tmp/_pay-respects-fallback-100-request-ai"  "$bindir/"
+    rm -rf "$tmp"
+}
+install_pay_respects
 
 # ─── 2. Oh My Zsh ────────────────────────────────────────────────────────
 
