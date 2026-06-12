@@ -1,4 +1,21 @@
 {
+  "permissions": {
+    "allow": [
+      "Read(~/.claude-tmp/**)",
+      "Write(~/.claude-tmp/**)",
+      "Edit(~/.claude-tmp/**)",
+      "Bash(mkdir -p ~/.claude-tmp/*)",
+      "Bash(ls ~/.claude-tmp/**)",
+      "Bash(cat ~/.claude-tmp/**)",
+      "Bash(tee ~/.claude-tmp/**)",
+      "Bash(rm ~/.claude-tmp/**)",
+      "Bash(mv ~/.claude-tmp/** ~/.claude-tmp/**)",
+      "Bash(cp ~/.claude-tmp/** ~/.claude-tmp/**)"
+    ],
+    "additionalDirectories": [
+      "~/.claude-tmp"
+    ]
+  },
   "hooks": {
     "PreToolUse": [
       {
@@ -20,7 +37,11 @@
   "enabledPlugins": {
     "clangd-lsp@claude-plugins-official": true,
     "wiki-skills@wiki-skills": true,
-    "frontend-design@claude-plugins-official": true
+    "frontend-design@claude-plugins-official": true,
+    "superpowers@claude-plugins-official": true,
+    "skill-creator@claude-plugins-official": true,
+    "playwright@claude-plugins-official": true,
+    "railway@claude-plugins-official": true
   },
   "extraKnownMarketplaces": {
     "wiki-skills": {
@@ -28,22 +49,16 @@
         "source": "github",
         "repo": "kfchou/wiki-skills"
       }
+    },
+    "cloudflare": {
+      "source": {
+        "source": "github",
+        "repo": "cloudflare/skills"
+      }
     }
   },
   "effortLevel": "high",
+  "skipWorkflowUsageWarning": true,
   "agentPushNotifEnabled": true,
-  "permissions": {
-    "additionalDirectories": ["~/.claude-tmp"],
-    "allow": [
-      "Read(~/.claude-tmp/**)",
-      "Write(~/.claude-tmp/**)",
-      "Edit(~/.claude-tmp/**)",
-      "Bash(mkdir -p ~/.claude-tmp/*)",
-      "Bash(ls ~/.claude-tmp/**)",
-      "Bash(cat ~/.claude-tmp/**)",
-      "Bash(rm ~/.claude-tmp/**)",
-      "Bash(mv ~/.claude-tmp/** ~/.claude-tmp/**)",
-      "Bash(cp ~/.claude-tmp/** ~/.claude-tmp/**)"
-    ]
-  }
+  "model": "claude-fable-5[1m]"
 }
