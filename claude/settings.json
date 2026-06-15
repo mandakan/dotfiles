@@ -40,8 +40,10 @@
     "frontend-design@claude-plugins-official": true,
     "superpowers@claude-plugins-official": true,
     "skill-creator@claude-plugins-official": true,
+    "github@claude-plugins-official": true,
     "playwright@claude-plugins-official": true,
-    "railway@claude-plugins-official": true
+    "railway@claude-plugins-official": true,
+    "code-simplifier@claude-plugins-official": true
   },
   "extraKnownMarketplaces": {
     "wiki-skills": {
@@ -60,5 +62,6 @@
   "effortLevel": "high",
   "skipWorkflowUsageWarning": true,
   "agentPushNotifEnabled": true,
-  "model": "claude-fable-5[1m]"
+  "model": "claude-fable-5[1m]",
+  "theme": "dark"
 }
