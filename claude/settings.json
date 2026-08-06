@@ -16,6 +16,7 @@
       "~/.claude-tmp"
     ]
   },
+  "model": "claude-fable-5[1m]",
   "hooks": {
     "PreToolUse": [
       {
@@ -60,8 +61,8 @@
     }
   },
   "effortLevel": "high",
+  "tui": "fullscreen",
   "skipWorkflowUsageWarning": true,
-  "agentPushNotifEnabled": true,
-  "model": "claude-fable-5[1m]",
-  "theme": "dark"
+  "theme": "dark",
+  "agentPushNotifEnabled": true
 }
