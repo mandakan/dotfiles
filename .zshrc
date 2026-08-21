@@ -183,3 +183,7 @@ export PATH="$PATH:/Users/mathias/.cache/lm-studio/bin"
 export ANDROID_HOME="$HOME/Library/Android/sdk"
 export PATH="$ANDROID_HOME/emulator:$ANDROID_HOME/platform-tools:$ANDROID_HOME/cmdline-tools/latest/bin:$PATH"
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+
+# ffmpeg-full is keg-only (conflicts with the slim ffmpeg formula); prepend
+# its bin so drawtext-capable ffmpeg is the host default (splitsmith overlays).
+export PATH="/opt/homebrew/opt/ffmpeg-full/bin:$PATH"

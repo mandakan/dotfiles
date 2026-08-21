@@ -2,14 +2,14 @@
 name: clean-prose
 description: >
   Enforce slop-free, plain prose. Use this skill proactively whenever writing
-  or editing any text — wiki pages, responses, summaries, documents. Also use
+  or editing any text: wiki pages, responses, summaries, and documents. Also use
   it reactively when the user says things like "check for slop", "clean this
   up", "remove em dashes", "review for LLM patterns", "is this slop-free", or
   any request to audit or fix text quality. Prefer triggering too eagerly over
   missing a case.
 ---
 
-# Clean Prose — Slop-Free Writing Rules
+# Clean Prose: Slop-Free Writing Rules
 
 Two modes: **write clean** (active while generating any prose) and **review & fix** (when asked to audit existing text).
 
@@ -21,8 +21,7 @@ Always use plain ASCII punctuation. Never use the typographic variants.
 
 | Use this | Never this | Notes |
 |---|---|---|
-| `--` or `-` | `—` (U+2014 em dash) | |
-| `-` | `–` (U+2013 en dash) | |
+| rewrite the sentence (see "The dash" below) | `—` (U+2014 em dash), `–` (U+2013 en dash), `--` (ASCII double hyphen) | do not transliterate a dash to `--`; restructure instead |
 | `...` | `…` (U+2026 ellipsis) | |
 | `"` | `"` `"` (U+201C/201D curly double quotes) | |
 | `'` | `'` `'` (U+2018/2019 curly single quotes) | |
@@ -30,6 +29,21 @@ Always use plain ASCII punctuation. Never use the typographic variants.
 | delete | `​` `‌` `‍` `⁠` `﻿` (zero-width chars) | |
 
 The reason: typographic characters are a reliable LLM fingerprint. They also cause diffs to look dirty, break search, and embed invisible state in files.
+
+---
+
+## The dash: avoid it, do not transliterate it
+
+The em-dash aside is one of the strongest LLM tells, and writing it as `--` does not fix that; it makes it worse, because a human writer almost never types a spaced double hyphen at all. So the rule is not "swap `—` for `--`." It is: **do not use the sentence-level dash. Restructure the sentence so none is needed.**
+
+- A dash joining two independent clauses: use a period or a semicolon (a comma if the link is tight).
+- A dash introducing an explanation, a list, or a payoff: use a colon.
+- A parenthetical dash aside: use commas, use parentheses, or split into a second sentence.
+- Never emit ` -- ` (spaced double hyphen), `---`, or any Unicode dash as prose punctuation.
+
+The single hyphen `-` inside a compound modifier is not a dash and is fine: fixed-price, well-scoped, end-to-end, 4-business-day. Leave those alone.
+
+When reviewing existing text, treat every ` -- ` as a defect to remove, not as already-clean ASCII. If a dash is genuinely wanted, the author adds it by hand; generated text should contain none.
 
 ---
 
@@ -76,7 +90,7 @@ When asked to review or clean text for slop:
 
 2. **Fix** in place:
    - Replace typographic characters with their ASCII equivalents
-   - Rewrite or delete flagged phrases — don't just swap one slop word for another
+   - Rewrite or delete flagged phrases; don't just swap one slop word for another
    - Preserve the author's meaning and voice; change only what breaks the plain-prose standard
 
 3. **Report** briefly:
@@ -90,6 +104,6 @@ Keep the report short. The goal is clean text, not an audit trail.
 
 ## What this is not
 
-This is not a style guide about sentence length, paragraph structure, or formality level. It is specifically about the mechanical markers that identify LLM-generated text — invisible characters, typographic substitutions, and a short list of overused phrases that have become fingerprints.
+This is not a style guide about sentence length, paragraph structure, or formality level. It is specifically about the mechanical markers that identify LLM-generated text: invisible characters, typographic substitutions, and a short list of overused phrases that have become fingerprints.
 
 Plain prose can still be precise, technical, and sophisticated. These rules only remove the tells.
