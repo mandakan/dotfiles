@@ -1,0 +1,16 @@
+# Google Play publishing config. Copy to play.properties and fill in.
+#
+# play.properties MUST be gitignored. The service account JSON key grants
+# publishing rights to the whole Play account, so keep the key itself OUTSIDE
+# the repo -- this file only points at it.
+#
+# Environment variables win over this file, which is how CI supplies them:
+#   PLAY_SERVICE_ACCOUNT   overrides serviceAccountFile
+#   PLAY_PACKAGE           overrides packageName
+#
+# Setup, and how to create the key: see the play-publish skill's
+# references/setup.md. Verify with:
+#   python3 tools/play_publish.py --dry-run
+
+serviceAccountFile=~/keystores/CHANGEME-play-api.json
+packageName=com.example.changeme
