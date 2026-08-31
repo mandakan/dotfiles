@@ -2,13 +2,11 @@
   "permissions": {
     "allow": [
       "Read(~/.claude-tmp/**)",
-      "Write(~/.claude-tmp/**)",
       "Edit(~/.claude-tmp/**)",
       "Bash(mkdir -p ~/.claude-tmp/*)",
       "Bash(ls ~/.claude-tmp/**)",
       "Bash(cat ~/.claude-tmp/**)",
       "Bash(tee ~/.claude-tmp/**)",
-      "Bash(rm ~/.claude-tmp/**)",
       "Bash(mv ~/.claude-tmp/** ~/.claude-tmp/**)",
       "Bash(cp ~/.claude-tmp/** ~/.claude-tmp/**)"
     ],
@@ -16,7 +14,7 @@
       "~/.claude-tmp"
     ]
   },
-  "model": "claude-fable-5[1m]",
+  "model": "opus[1m]",
   "hooks": {
     "PreToolUse": [
       {
@@ -25,6 +23,16 @@
           {
             "type": "command",
             "command": "rtk hook claude"
+          }
+        ]
+      },
+      {
+        "matcher": "Agent",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/agent-cost-guard.sh",
+            "timeout": 10
           }
         ]
       }
@@ -44,7 +52,8 @@
     "github@claude-plugins-official": true,
     "playwright@claude-plugins-official": true,
     "railway@claude-plugins-official": true,
-    "code-simplifier@claude-plugins-official": true
+    "code-simplifier@claude-plugins-official": true,
+    "revenuecat@claude-plugins-official": true
   },
   "extraKnownMarketplaces": {
     "wiki-skills": {
@@ -58,11 +67,59 @@
         "source": "github",
         "repo": "cloudflare/skills"
       }
+    },
+    "RevenueCat": {
+      "source": {
+        "source": "github",
+        "repo": "RevenueCat/ai-toolkit"
+      }
     }
   },
   "effortLevel": "high",
   "tui": "fullscreen",
   "skipWorkflowUsageWarning": true,
   "theme": "dark",
-  "agentPushNotifEnabled": true
+  "agentPushNotifEnabled": true,
+  "autoMode": {
+    "allow": [
+      "$defaults",
+      "Bash(pnpm -w run lint:*)",
+      "Bash(pnpm -w run typecheck:*)",
+      "Bash(pnpm -w test:*)",
+      "Bash(.claude/skills/r2-telemetry/scripts/fetch.py:*)",
+      "Bash(.claude/skills/usage-analysis/scripts/analyze.py:*)"
+    ],
+    "soft_deny": [
+      "$defaults",
+      "Bash(wrangler secret put:*)",
+      "Bash(wrangler tail:*)"
+    ],
+    "environment": [
+      "### Org-wide",
+      "**Organization**: None configured",
+      "**Primary use of Claude Code**: software development",
+      "**Cloud provider(s)**: Cloudflare (Workers/Pages, D1, R2, Upstash Redis) and Docker/self-hosted (ioredis, better-sqlite3)",
+      "**Repository visibility**: PUBLIC — github.com/mandakan/ssi-scoreboard",
+      "**Internal sharing / snippet hosting**: None configured — treat public paste/gist services as outside the trust boundary",
+      "**Secrets management**: Cloudflare Workers secrets (`wrangler secret put`) and GitHub Actions secrets — names referenced: CACHE_PURGE_SECRET, CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_API_TOKEN, DISCORD_APP_ID, DISCORD_BOT_TOKEN, SMITHERY_API_KEY, SSI_API_KEY, SSI_SERVICE_EMAIL, SSI_SERVICE_PASSWORD, UPSTASH_API_KEY, UPSTASH_EMAIL",
+      "**Default / protected branches**: `main` (default branch; protected via ruleset \"Protect main\", active)",
+      "**CI/CD deploy targets**: Cloudflare Pages/Workers (ssi-scoreboard, ssi-scoreboard-staging) via `wrangler`/`pnpm cf:deploy`; Docker Compose target via `pnpm docker:build`/`docker:up`",
+      "**Network posture**: Hosts contacted this project: ssi-scoreboard.long-sun-fac0.workers.dev, scoreboard.urdr.dev, ssi-scoreboard-staging.long-sun-fac0.workers.dev, staging.urdr.dev, ssi-scoreboard-staging.mandakan.workers.dev, api.github.com",
+      "**Source control**: The trusted repo (mandakan/ssi-scoreboard, public) and its origin remote only",
+      "**Trusted internal domains**: None configured",
+      "**Trusted cloud buckets**: None configured",
+      "**Key internal services**: shootnscoreit.com/graphql/ (upstream GraphQL API this app proxies)",
+      "**Internal package registry**: None configured",
+      "**Sensitive data locations & audiences**: `.env.local`, `.env.local.example`, `lab/.env.local.example` and any file holding SSI_API_KEY, SSI_SERVICE_EMAIL/PASSWORD, CACHE_PURGE_SECRET, MCP_SECRET, CLOUDFLARE_API_TOKEN, DISCORD_BOT_TOKEN, SMITHERY_API_KEY, UPSTASH_API_KEY or other credentials in the table above — never commit or push to the public repo; share only with audiences cleared at the [named+specifics] bar",
+      "**Data retention / declassification**: None configured",
+      "**Sensitive remote targets**: any host/namespace containing `prod`/`production` as a whole word or segment; also treat scoreboard.urdr.dev and the *.workers.dev prod deployment (ssi-scoreboard, non-staging) as the live production target per the match-cache-refresh postmortem (docs/postmortem-2026-08-15-ssi-outage.md) — staging.urdr.dev and *-staging.workers.dev are non-prod",
+      "**Protected deployment namespaces / environments**: production Cloudflare Worker/Pages deployment (ssi-scoreboard prod, scoreboard.urdr.dev) — staging is not protected",
+      "**Protected IaC scopes**: IAM, RBAC, networking, quota, and node-pool resources; anything whose name or tag carries `prod` or `production` as a whole word or segment",
+      "### User-specific",
+      "**Primary use of Claude Code**: software development (Next.js/Cloudflare full-stack app, telemetry analysis via skills)",
+      "**Trusted repo**: /Users/mathias/work/ssi-scoreboard (mandakan/ssi-scoreboard, public) and its origin remote — public repo, so only this repo's own work belongs there; secrets and sensitive data are never cleared into it regardless of visibility",
+      "**Org-specific CLIs**: wrangler (Cloudflare), pnpm@10.30.3 (required package manager — do not use npm or yarn)",
+      "**routine under ~/.claude-tmp/ prefix**: scratch/intermediate files per user CLAUDE.md; user-settings permissions.allow already auto-approves `Bash(rm ~/.claude-tmp/**)`"
+    ]
+  }
 }
