@@ -9,7 +9,7 @@ PLAY_AAB    ?= build/app.aab
 PLAY_TRACK  ?= internal
 PLAY_STATUS ?= draft
 
-.PHONY: play-check play-status play-upload play-promote
+.PHONY: play-check play-status play-upload play-promote play-listing play-listing-diff
 
 # Validates local config without touching the network.
 play-check:
@@ -27,3 +27,13 @@ play-upload: $(PLAY_AAB)
 
 play-promote:
 	@python3 $(PLAY_TOOL) --promote --track $(PLAY_TRACK)
+
+# Listing copy, kept away from anything that ships a build: a typo fixed in a
+# description should not need a new versionCode. The diff target opens an edit,
+# compares the live listing against the repo and discards it, so it is safe to
+# run at any time -- and it is what catches a console that has drifted.
+play-listing-diff:
+	@python3 $(PLAY_TOOL) --listing-dry-run
+
+play-listing:
+	@python3 $(PLAY_TOOL) --listing
