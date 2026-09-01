@@ -86,6 +86,15 @@ LISTING_FIELDS = {
     "fullDescription": "store/listing/full-description.txt",
 }
 
+# The ninth thing store/listing/ holds, and the one that is not a listing field.
+# Release notes belong to a track release, so they are attached where a release
+# is made -- an upload or a version-code assignment -- and never by a listing
+# write. Without this the file is an orphan: written, validated by the repo's
+# listing validator, documented as pushed, and pushed by nothing, so whatever
+# was last typed into the console ships as the release notes instead.
+RELEASE_NOTES_FILE = "store/listing/whats-new.txt"
+RELEASE_NOTES_LIMIT = 500
+
 # How each game runs its own listing validator. The convention puts a validator
 # in every repo but lets each write it in the language the repo already speaks,
 # so this looks for the target rather than the script.
@@ -329,6 +338,42 @@ def read_listing_files() -> dict[str, str]:
     return out
 
 
+def release_notes(token: str, package: str, edit_id: str) -> list[dict[str, str]] | None:
+    """whats-new.txt shaped as a Play releaseNotes list, or None to send none.
+
+    Reuses the caller's open edit rather than opening its own: this runs inside
+    an upload that has already put a bundle in that edit, and a second edit
+    would be a second lock on the same app.
+
+    Degrades rather than fails. Notes are per-language and Play rejects a
+    language the app has no listing for, so an app with several listings and no
+    way to choose gets a warning and no notes -- failing somebody's upload over
+    a nicety on the release would be the wrong trade. Over-length is different:
+    that is a fixable mistake in a file, and silently dropping it would teach
+    nobody.
+    """
+    path = ROOT / RELEASE_NOTES_FILE
+    if not path.exists():
+        return None
+    text = path.read_text(encoding="utf-8").rstrip("\n")
+    if not text:
+        return None
+    if len(text) > RELEASE_NOTES_LIMIT:
+        die(f"{RELEASE_NOTES_FILE} is {len(text)} characters, Play allows {RELEASE_NOTES_LIMIT}",
+            "shorten it and re-run the repo's listing validator")
+
+    listings = call(token, "GET", f"{API}/{package}/edits/{edit_id}/listings")
+    languages = [l["language"] for l in listings.get("listings", [])]
+    if len(languages) != 1:
+        print(f"    note: {len(languages)} listing languages, so no release notes were "
+              f"attached; set them in the console", file=sys.stderr)
+        return None
+
+    print(f"==> release notes from {RELEASE_NOTES_FILE} "
+          f"({len(text)} chars, {languages[0]})")
+    return [{"language": languages[0], "text": text}]
+
+
 def preflight_validate() -> None:
     """Run the repo's own listing validator, and refuse to send if it fails.
 
@@ -435,13 +480,15 @@ def upload(token: str, package: str, aab: pathlib.Path, track: str, status: str)
     version_code = uploaded["versionCode"]
     print(f"==> uploaded versionCode {version_code}")
 
+    release: dict[str, object] = {"versionCodes": [str(version_code)], "status": status}
+    notes = release_notes(token, package, edit_id)
+    if notes:
+        release["releaseNotes"] = notes
+
     call(
         token, "PUT",
         f"{API}/{package}/edits/{edit_id}/tracks/{track}",
-        body=json.dumps(
-            {"track": track,
-             "releases": [{"versionCodes": [str(version_code)], "status": status}]}
-        ).encode(),
+        body=json.dumps({"track": track, "releases": [release]}).encode(),
     )
     call(token, "POST", f"{API}/{package}/edits/{edit_id}:commit")
     print(f"==> committed to '{track}' as {status} (versionCode {version_code})")
@@ -478,7 +525,10 @@ def assign(token: str, package: str, version_code: str, track: str, status: str)
     current = next((t for t in tracks if t.get("track") == track), {})
     live = [r for r in current.get("releases", []) if r.get("status") == "completed"]
 
-    release = {"versionCodes": [version_code], "status": status}
+    release: dict[str, object] = {"versionCodes": [version_code], "status": status}
+    notes = release_notes(token, package, edit_id)
+    if notes:
+        release["releaseNotes"] = notes
     if status == "draft":
         # A draft may sit beside whatever is already live, and must: sending the
         # draft alone would drop the live release and un-publish the track.

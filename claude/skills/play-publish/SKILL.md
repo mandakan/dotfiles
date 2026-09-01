@@ -158,9 +158,12 @@ claims the repo had already corrected as false.
 gap is not an oversight:
 
 - `edits.listings` takes **title, shortDescription, fullDescription**.
-- **Release notes are not listing fields.** They belong to a track release, so
-  they attach at an upload or a version-code assignment. A listing write that
-  carried them would clear the notes on whatever is live.
+- **Release notes are not listing fields.** `store/listing/whats-new.txt`
+  belongs to a track release, so `--aab` and `--version-code` attach it to the
+  release they create and `--listing` leaves it alone. A listing write that
+  carried it would clear the notes on whatever is live. Notes are per-language:
+  an app with several listings gets a warning and no notes rather than a failed
+  upload, since that is the wrong thing to lose a build over.
 - **The privacy policy URL is an App content declaration**, entered in console.
 - **Name, subtitle and keywords are Apple's**, with no Play equivalent.
 
