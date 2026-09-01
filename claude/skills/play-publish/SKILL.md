@@ -218,7 +218,23 @@ here. Copy the script in and wire it up:
 5. Document it where the repo documents its other build steps.
 
 Note in the repo's docs that the skill holds the canonical copy, so a later fix
-here can be re-synced rather than diverging silently.
+here can be re-synced rather than diverging silently, and give them the check:
+
+```bash
+md5 -q tools/play_publish.py ~/.claude/skills/play-publish/scripts/play_publish.py
+```
+
+Two equal hashes means in sync. Do this before trusting a vendored copy, not
+only when something looks wrong: the copies drift quietly, because a repo that
+is behind still works for everything it already knew how to do. On 2026-09-01
+two of three gelopard games were behind, one far enough back that it held
+listing files it had no way to push -- and a third had listing files whose
+release notes nothing attached. Neither failed; they just did less than their
+docs claimed.
+
+**Re-sync by overwriting, then diff to confirm the repo had nothing of its
+own.** A vendored copy should never carry local edits; if the diff shows lines
+only the repo has, that is a fix which belongs here first.
 
 ## Wiring it to a release process
 
