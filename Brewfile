@@ -29,6 +29,7 @@ brew "tig"
 brew "tmux"
 brew "wget"
 brew "zsh-completions"
+brew "zstd"  # pay-respects tarball; Apple tar has no built-in zstd
 
 # ─── Build / system libs ─────────────────────────────────────────────────
 brew "cmake"

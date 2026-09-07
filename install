@@ -121,6 +121,9 @@ case "$OS" in
             /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
         fi
         eval "$(/opt/homebrew/bin/brew shellenv)"
+        # Apple's bsdtar is built without libzstd and shells out to `zstd`,
+        # which section 1b needs to unpack the pay-respects .tar.zst.
+        command -v zstd >/dev/null 2>&1 || brew install zstd
         ;;
     Linux)
         command -v apt-get >/dev/null 2>&1 || die "this script only supports macOS or apt-based Linux"
