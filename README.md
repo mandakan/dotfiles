@@ -15,9 +15,7 @@ Personal macOS dotfiles. Originally based on [Dries Vints](https://github.com/dr
     ├── settings.json
     ├── statusline.sh
     ├── CLAUDE.md
-    ├── RTK.md
-    └── hooks/
-        └── rtk-rewrite.sh
+    └── RTK.md
 ```
 
 ## Setup

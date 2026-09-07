@@ -244,9 +244,15 @@ link "$DOTFILES/claude/settings.json"  "$HOME/.claude/settings.json"
 link "$DOTFILES/claude/CLAUDE.md"      "$HOME/.claude/CLAUDE.md"
 link "$DOTFILES/claude/RTK.md"         "$HOME/.claude/RTK.md"
 link "$DOTFILES/claude/statusline.sh"  "$HOME/.claude/statusline.sh"
-link "$DOTFILES/claude/hooks/rtk-rewrite.sh" "$HOME/.claude/hooks/rtk-rewrite.sh"
 link "$DOTFILES/claude/skills/clean-prose" "$HOME/.claude/skills/clean-prose"
 link "$DOTFILES/claude/skills/play-publish" "$HOME/.claude/skills/play-publish"
+
+# The shell-based rtk hook was replaced by the native `rtk hook claude`
+# (see settings.json); drop the symlink older installs left behind.
+if [[ -L $HOME/.claude/hooks/rtk-rewrite.sh ]]; then
+    rm -f "$HOME/.claude/hooks/rtk-rewrite.sh"
+    log "removed legacy $HOME/.claude/hooks/rtk-rewrite.sh"
+fi
 
 # ─── 6. Package bundle + nano syntax highlighting ────────────────────────
 
