@@ -6,7 +6,9 @@ from config and the versionCode comes back from Play in the upload response, so
 this works the same for Gradle, Flutter, Unity, Godot or a bundle someone
 handed you.
 
-Credentials resolve environment-first, then play.properties. The service
+Credentials resolve environment-first, then the nearest play.properties at or
+below the repository root -- never above it, because a config outside the repo
+belongs to another project and would publish against its package. The service
 account key grants publishing rights to the whole Play account, so it lives
 OUTSIDE the repo and that file only points at it. Nothing here ever prints it.
 
@@ -111,17 +113,44 @@ PROPS_NAME = "play.properties"
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 
 
+def find_repo_root(start: pathlib.Path) -> pathlib.Path | None:
+    """The nearest ancestor holding a .git, or None outside a repository."""
+    for directory in (start, *start.parents):
+        if (directory / ".git").exists():
+            return directory
+    return None
+
+
 def find_props() -> pathlib.Path | None:
-    """Look for play.properties from the working directory upward.
+    """Look for play.properties from the working directory up to the REPO ROOT.
 
     Walking up means the script works whether it is invoked from the repo root
-    or a subdirectory, without the caller having to think about it.
+    or a subdirectory, without the caller having to think about it. Walking up
+    PAST the root is a different thing entirely, and it is a live hazard: a
+    play.properties in a home directory or a shared parent belongs to some
+    other project, and adopting it silently publishes this build against that
+    project's package. A gelopard machine had exactly that -- a stray
+    ~/play.properties naming one game, which any sibling repo without its own
+    copy would have used without a word.
+
+    So the walk stops at the root, and outside a repository there is no project
+    to configure and nothing is searched at all. A repo whose own copy is
+    missing then fails loudly, which is the correct failure: the alternative is
+    a successful upload to the wrong app.
+
+    The environment still overrides everything (PLAY_SERVICE_ACCOUNT,
+    PLAY_PACKAGE), which is how CI and any deliberate out-of-tree run work.
     """
     here = pathlib.Path.cwd().resolve()
+    root = find_repo_root(here)
+    if root is None:
+        return None
     for directory in (here, *here.parents):
         candidate = directory / PROPS_NAME
         if candidate.exists():
             return candidate
+        if directory == root:
+            return None
     return None
 
 
@@ -315,25 +344,46 @@ def resolve_language(token: str, package: str, edit_id: str, language: str | Non
         call(token, "DELETE", f"{API}/{package}/edits/{edit_id}")
         die(f"{len(languages)} listing languages on this app",
             f"pass --language, one of: {', '.join(languages) or 'none'}")
-    if language not in languages:
+    if language not in languages and listing_dir_for(language) is None:
         call(token, "DELETE", f"{API}/{package}/edits/{edit_id}")
         die(f"no '{language}' listing on this app",
-            f"existing listings: {', '.join(languages) or 'none'}; pass --language")
+            f"existing listings: {', '.join(languages) or 'none'}; pass --language, or add "
+            f"store/listing/{language}/ to create it from the repo")
     return language
 
 
-def read_listing_files() -> dict[str, str]:
+def listing_dir_for(language: str | None) -> pathlib.Path | None:
+    """store/listing/<language>/ when the repo keeps a translation there.
+
+    The top-level files are the default listing. A second language lives in a
+    subdirectory named after Play's language code (sv-SE, de-DE), holding the
+    same three files, so a translation is source control too rather than a
+    console-only copy. None when no such directory exists, which is the
+    single-language case and the common one.
+    """
+    if not language:
+        return None
+    candidate = ROOT / "store" / "listing" / language
+    return candidate if candidate.is_dir() else None
+
+
+def read_listing_files(language: str | None = None) -> dict[str, str]:
     """The three pushable fields, read from the repo.
 
     One trailing newline is the file ending rather than listing content, which
     is the same rule the convention's validator counts by; anything more would
     arrive in the console as blank lines at the bottom of the description.
+    With a per-language directory (see listing_dir_for) all three files are
+    read from there; a translation missing a field is an error, not a fallback
+    to the default language, because a half-translated listing reads as a bug.
     """
+    base = listing_dir_for(language)
     out = {}
     for field, rel in LISTING_FIELDS.items():
-        path = ROOT / rel
+        path = (base / pathlib.Path(rel).name) if base else (ROOT / rel)
         if not path.exists():
-            die(f"{rel} not found", "the listing convention keeps one field per file under store/listing/")
+            where = f"store/listing/{language}/" if base else "store/listing/"
+            die(f"{path.relative_to(ROOT)} not found", f"the listing convention keeps one field per file under {where}")
         out[field] = path.read_text(encoding="utf-8").rstrip("\n")
     return out
 
@@ -424,16 +474,18 @@ def push_listing(token: str, package: str, language: str | None, dry_run: bool) 
     The write is a PATCH of exactly the three fields. The Listing resource also
     carries `video`, and a whole-resource PUT that omitted it would clear it.
     """
-    wanted = read_listing_files()
+    wanted = read_listing_files(language)
     if not dry_run:
         preflight_validate()
 
     edit = call(token, "POST", f"{API}/{package}/edits")
     edit_id = edit["id"]
     language = resolve_language(token, package, edit_id, language)
-    current = call(token, "GET", f"{API}/{package}/edits/{edit_id}/listings/{language}")
+    listings = call(token, "GET", f"{API}/{package}/edits/{edit_id}/listings")
+    exists = language in [l["language"] for l in listings.get("listings", [])]
+    current = call(token, "GET", f"{API}/{package}/edits/{edit_id}/listings/{language}") if exists else {}
 
-    print(f"==> listing '{language}' on {package}")
+    print(f"==> listing '{language}' on {package}" + ("" if exists else " (new language, created from the repo)"))
     changed = diff_listing(current, wanted)
 
     if dry_run:
@@ -445,8 +497,10 @@ def push_listing(token: str, package: str, language: str | None, dry_run: bool) 
         print("==> already matches the repo; nothing to send")
         return 0
 
-    call(token, "PATCH", f"{API}/{package}/edits/{edit_id}/listings/{language}",
-         body=json.dumps(wanted).encode())
+    # PATCH keeps `video` on an existing listing; a listing that does not exist
+    # yet has nothing to keep and PATCH has nothing to patch, so it is PUT.
+    call(token, "PATCH" if exists else "PUT", f"{API}/{package}/edits/{edit_id}/listings/{language}",
+         body=json.dumps(wanted if exists else {"language": language, **wanted}).encode())
     call(token, "POST", f"{API}/{package}/edits/{edit_id}:commit")
     print(f"==> committed {', '.join(changed)} to the '{language}' listing")
     return 0

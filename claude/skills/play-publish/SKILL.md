@@ -17,6 +17,18 @@ or install it into a repo when CI or the user needs to publish without you.
 Read these before doing anything. Most Play publishing failures are one of
 them, and the error messages point somewhere unhelpful.
 
+**A `play.properties` above the repo root is another project's, and adopting
+it publishes to another project's app.** The search walks up from the working
+directory so it works from a subdirectory, and it stops at the repository root.
+It did not always: a gelopard machine had a stray `~/play.properties` naming
+one game, and any sibling repo without its own copy resolved to it and reported
+`Play config OK` for the wrong package. Nothing failed; it would simply have
+uploaded a build to the wrong app. Outside a repository there is no project to
+configure, so nothing is searched and the run refuses. The environment
+(`PLAY_SERVICE_ACCOUNT`, `PLAY_PACKAGE`) still overrides everything, which is
+how CI and a deliberate out-of-tree run work. **A missing config must fail
+loudly; the alternative is a successful upload to somebody else's app.**
+
 **The first bundle for a package must be uploaded by hand.** The API cannot
 create a listing, and it refuses a package it has never seen — you get a 404
 that reads like a wrong URL. If the app is new, the user has to create it in
@@ -94,8 +106,10 @@ Verify by reading the track back with `--dry-run` rather than trusting the exit
 code. The upload printing success and the release actually being where you
 think are different claims.
 
-Config resolves environment-first, then the nearest `play.properties` found
-walking up from the working directory:
+Config resolves environment-first, then the nearest `play.properties` at or
+below the **repository root**. The walk stops there on purpose, and outside a
+repository nothing is searched at all -- see the rule above about configs above
+the root:
 
 | Setting | Environment | play.properties |
 |---|---|---|
@@ -177,6 +191,16 @@ Two things the API will let you get wrong:
   runs the repo's own listing validator first and refuses to send -- an npm
   `check:listing` script or a `check-listing` make target, whichever the repo
   has. A repo with neither is refused rather than pushed blind.
+
+**A translation is a subdirectory.** `store/listing/<language>/` (Play's code:
+`sv-SE`, `de-DE`) holding the same three files is pushed with
+`--listing --language sv-SE`, and creates that listing on the app when it does
+not exist yet (a new listing has no `video` to lose, so that one write is a
+PUT). A translation missing a field is refused rather than filled from the
+default language: a half-translated listing reads as a bug. The default
+language itself cannot be changed here -- the API accepts the write and refuses
+the commit -- so an app created under the wrong default is fixed in the
+console, under Manage translations.
 
 Keep this on its own command, away from anything that ships a build. Copy and
 binaries move on different schedules, and fixing a typo in a description should
