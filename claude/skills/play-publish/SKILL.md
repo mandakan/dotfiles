@@ -175,9 +175,11 @@ gap is not an oversight:
 - **Release notes are not listing fields.** `store/listing/whats-new.txt`
   belongs to a track release, so `--aab` and `--version-code` attach it to the
   release they create and `--listing` leaves it alone. A listing write that
-  carried it would clear the notes on whatever is live. Notes are per-language:
-  an app with several listings gets a warning and no notes rather than a failed
-  upload, since that is the wrong thing to lose a build over.
+  carried it would clear the notes on whatever is live. Notes are per-language
+  and follow the listing's layout: the top-level file is the default
+  language's, `store/listing/<language>/whats-new.txt` a translation's. A
+  listing language with no file gets a warning and no notes of its own (Play
+  falls back to the default language's) rather than a failed upload.
 - **The privacy policy URL is an App content declaration**, entered in console.
 - **Name, subtitle and keywords are Apple's**, with no Play equivalent.
 

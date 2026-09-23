@@ -389,39 +389,59 @@ def read_listing_files(language: str | None = None) -> dict[str, str]:
 
 
 def release_notes(token: str, package: str, edit_id: str) -> list[dict[str, str]] | None:
-    """whats-new.txt shaped as a Play releaseNotes list, or None to send none.
+    """whats-new.txt per listing language, shaped as Play's releaseNotes list.
 
     Reuses the caller's open edit rather than opening its own: this runs inside
     an upload that has already put a bundle in that edit, and a second edit
     would be a second lock on the same app.
 
-    Degrades rather than fails. Notes are per-language and Play rejects a
-    language the app has no listing for, so an app with several listings and no
-    way to choose gets a warning and no notes -- failing somebody's upload over
-    a nicety on the release would be the wrong trade. Over-length is different:
-    that is a fixable mistake in a file, and silently dropping it would teach
-    nobody.
-    """
-    path = ROOT / RELEASE_NOTES_FILE
-    if not path.exists():
-        return None
-    text = path.read_text(encoding="utf-8").rstrip("\n")
-    if not text:
-        return None
-    if len(text) > RELEASE_NOTES_LIMIT:
-        die(f"{RELEASE_NOTES_FILE} is {len(text)} characters, Play allows {RELEASE_NOTES_LIMIT}",
-            "shorten it and re-run the repo's listing validator")
+    Same layout as the listing: store/listing/whats-new.txt is the default
+    language's, store/listing/<language>/whats-new.txt a translation's (see
+    listing_dir_for). Notes go only to languages the app has a listing for,
+    since Play rejects the rest. A listing language with no file of its own gets
+    no notes and a warning rather than a failed upload -- Play then shows the
+    default language's -- because a missing translation is the wrong thing to
+    lose a build over. Over-length is different: that is a fixable mistake in a
+    file, and silently dropping it would teach nobody.
 
+    Until 2026-09-23 an app with two listings got no notes at all, and the
+    notes were typed into the console by hand after every upload.
+    """
     listings = call(token, "GET", f"{API}/{package}/edits/{edit_id}/listings")
     languages = [l["language"] for l in listings.get("listings", [])]
-    if len(languages) != 1:
-        print(f"    note: {len(languages)} listing languages, so no release notes were "
-              f"attached; set them in the console", file=sys.stderr)
-        return None
+    if len(languages) == 1:
+        default = languages[0]
+    else:
+        default = call(token, "GET", f"{API}/{package}/edits/{edit_id}/details").get("defaultLanguage")
 
-    print(f"==> release notes from {RELEASE_NOTES_FILE} "
-          f"({len(text)} chars, {languages[0]})")
-    return [{"language": languages[0], "text": text}]
+    notes, missing = [], []
+    for language in languages:
+        base = listing_dir_for(language)
+        if base and (base / "whats-new.txt").exists():
+            path = base / "whats-new.txt"
+        elif language == default:
+            path = ROOT / RELEASE_NOTES_FILE
+        else:
+            missing.append(language)
+            continue
+        if not path.exists():
+            missing.append(language)
+            continue
+        text = path.read_text(encoding="utf-8").rstrip("\n")
+        if not text:
+            missing.append(language)
+            continue
+        rel = path.relative_to(ROOT)
+        if len(text) > RELEASE_NOTES_LIMIT:
+            die(f"{rel} is {len(text)} characters, Play allows {RELEASE_NOTES_LIMIT}",
+                "shorten it and re-run the repo's listing validator")
+        print(f"==> release notes from {rel} ({len(text)} chars, {language})")
+        notes.append({"language": language, "text": text})
+
+    if notes and missing:
+        print(f"    note: no whats-new.txt for {', '.join(missing)}; Play shows the "
+              f"default language's notes there", file=sys.stderr)
+    return notes or None
 
 
 def preflight_validate() -> None:
