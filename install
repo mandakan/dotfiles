@@ -246,6 +246,7 @@ link "$DOTFILES/claude/RTK.md"         "$HOME/.claude/RTK.md"
 link "$DOTFILES/claude/statusline.sh"  "$HOME/.claude/statusline.sh"
 link "$DOTFILES/claude/skills/clean-prose" "$HOME/.claude/skills/clean-prose"
 link "$DOTFILES/claude/skills/play-publish" "$HOME/.claude/skills/play-publish"
+link "$DOTFILES/claude/skills/app-store-publish" "$HOME/.claude/skills/app-store-publish"
 
 # The shell-based rtk hook was replaced by the native `rtk hook claude`
 # (see settings.json); drop the symlink older installs left behind.
