@@ -245,8 +245,15 @@ link "$DOTFILES/claude/CLAUDE.md"      "$HOME/.claude/CLAUDE.md"
 link "$DOTFILES/claude/RTK.md"         "$HOME/.claude/RTK.md"
 link "$DOTFILES/claude/statusline.sh"  "$HOME/.claude/statusline.sh"
 link "$DOTFILES/claude/skills/clean-prose" "$HOME/.claude/skills/clean-prose"
-link "$DOTFILES/claude/skills/play-publish" "$HOME/.claude/skills/play-publish"
-link "$DOTFILES/claude/skills/app-store-publish" "$HOME/.claude/skills/app-store-publish"
+# The store-publishing skills live in gelopard/tools (private), which the
+# games' copies are synced from. Linked only when that checkout exists.
+GELOPARD_TOOLS="${GELOPARD_TOOLS:-$HOME/work/tools}"
+if [[ -d $GELOPARD_TOOLS ]]; then
+    link "$GELOPARD_TOOLS/play-publish" "$HOME/.claude/skills/play-publish"
+    link "$GELOPARD_TOOLS/app-store-publish" "$HOME/.claude/skills/app-store-publish"
+else
+    warn "no gelopard/tools checkout at $GELOPARD_TOOLS; store-publishing skills not linked"
+fi
 
 # The shell-based rtk hook was replaced by the native `rtk hook claude`
 # (see settings.json); drop the symlink older installs left behind.
