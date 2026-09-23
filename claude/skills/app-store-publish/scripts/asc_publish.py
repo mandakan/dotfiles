@@ -887,6 +887,185 @@ def testflight(config: Config) -> None:
     print(f"\n{GREEN}internal testing ready{RESET} {DIM}-- {len(testers)} tester(s): {emails}{RESET}")
 
 
+def editable_version(config: Config, app: dict) -> dict:
+    """The App Store version that can still be edited, created from the repo's
+    version string when the app has none. Once a version is on sale the live
+    one refuses edits, so the next one is the target."""
+    versions = asc(config, "GET", f"/v1/apps/{app['id']}/appStoreVersions?limit=20"
+                   "&fields[appStoreVersions]=versionString,appStoreState,platform,releaseType")["data"]
+    editable = next((v for v in versions if v["attributes"]["appStoreState"] != "READY_FOR_SALE"
+                     and v["attributes"].get("platform", "IOS") == "IOS"), None)
+    if editable:
+        return editable
+    wanted = version_string()
+    created = asc(config, "POST", "/v1/appStoreVersions", {"data": {
+        "type": "appStoreVersions",
+        "attributes": {"platform": "IOS", "versionString": wanted},
+        "relationships": {"app": {"data": {"type": "apps", "id": app["id"]}}}}})["data"]
+    step(f"created version {wanted}")
+    return created
+
+
+def declare(config: Config) -> None:
+    """The declarations a first submission needs, from the terminal.
+
+    Age rating (every category NONE, every boolean false: the 4+ answer, with
+    kidsAgeBand left null so the app never enters the Kids Category, a one-way
+    door), free pricing, availability in every territory, content rights,
+    manual release, and the review contact when asc.properties carries one.
+    Everything here is a PATCH or a create-if-missing, so re-running is safe,
+    and every write is read back. App Privacy has no API and stays a console
+    step; the summary at the end says so.
+
+    The shapes Apple wants are the ones playbook conventions/store-publishing.md
+    recorded from the first submission: compound creates take the literal
+    ${local-id} syntax for their included resources, free pricing is the price
+    point with customerPrice 0 in the base territory, and review details need a
+    phone in +<country code> form or the create is refused.
+
+    asc.properties keys read here, all optional:
+      reviewFirstName, reviewLastName, reviewEmail, reviewPhone
+      contentRights   DOES_NOT_USE_THIRD_PARTY_CONTENT (default) | USES_THIRD_PARTY_CONTENT
+      releaseType     MANUAL (default) | AFTER_APPROVAL
+    Review notes come from store/review-notes.txt when the file exists (outside
+    store/listing/, whose validator allows only the listing fields).
+    """
+    props = properties()
+    app = find_app(config)
+    step(f"app {app['attributes']['name']} ({app['id']})")
+
+    # Age rating: rather than name Apple's categories, which the 2025 questionnaire
+    # changed once already, read the declaration and turn every enum to NONE and
+    # every boolean to false. kidsAgeBand and other nulls are left alone.
+    app_infos = asc(config, "GET", f"/v1/apps/{app['id']}/appInfos?limit=10")["data"]
+    app_info = next((i for i in app_infos
+                     if i["attributes"].get("state") != "READY_FOR_DISTRIBUTION"), app_infos[0])
+    rating = asc(config, "GET", f"/v1/appInfos/{app_info['id']}/ageRatingDeclaration")["data"]
+    wanted = {}
+    for key, value in rating["attributes"].items():
+        if key == "kidsAgeBand" or value is None:
+            continue
+        if isinstance(value, bool):
+            wanted[key] = False
+        elif isinstance(value, str):
+            wanted[key] = "NONE"
+    changed = {k: v for k, v in wanted.items() if rating["attributes"].get(k) != v}
+    if changed:
+        asc(config, "PATCH", f"/v1/ageRatingDeclarations/{rating['id']}", {"data": {
+            "type": "ageRatingDeclarations", "id": rating["id"], "attributes": changed}})
+        step(f"age rating: {len(changed)} field(s) set to none/false, kidsAgeBand null (4+)")
+    else:
+        step("age rating already none/false everywhere (4+)")
+
+    # Pricing: free, from the USA base territory's zero price point.
+    schedule = None
+    try:
+        schedule = asc(config, "GET", f"/v1/apps/{app['id']}/appPriceSchedule"
+                       "?include=manualPrices,baseTerritory").get("data")
+    except SystemExit as error:
+        if "404" not in str(error):
+            raise
+    if schedule:
+        step("price schedule exists; left as it is")
+    else:
+        points = asc(config, "GET", f"/v1/apps/{app['id']}/appPricePoints"
+                     "?filter[territory]=USA&limit=200"
+                     "&fields[appPricePoints]=customerPrice,proceeds")["data"]
+        free = next((pt for pt in points
+                     if float(pt["attributes"]["customerPrice"]) == 0), None)
+        if not free:
+            fail("no free price point for USA", "Apple's price points changed shape; look at "
+                 "/v1/apps/{id}/appPricePoints?filter[territory]=USA")
+        asc(config, "POST", "/v1/appPriceSchedules", {
+            "data": {"type": "appPriceSchedules", "relationships": {
+                "app": {"data": {"type": "apps", "id": app["id"]}},
+                "baseTerritory": {"data": {"type": "territories", "id": "USA"}},
+                "manualPrices": {"data": [{"type": "appPrices", "id": "${price-free}"}]}}},
+            "included": [{"type": "appPrices", "id": "${price-free}",
+                          "attributes": {"startDate": None},
+                          "relationships": {"appPricePoint": {"data": {
+                              "type": "appPricePoints", "id": free["id"]}}}}]})
+        step("price: free (USA base territory, price point with customerPrice 0)")
+
+    # Availability: every territory, and new ones as Apple adds them.
+    availability = None
+    try:
+        availability = asc(config, "GET", f"/v1/apps/{app['id']}/appAvailabilityV2"
+                           "?fields[appAvailabilities]=availableInNewTerritories").get("data")
+    except SystemExit as error:
+        if "404" not in str(error):
+            raise
+    if availability:
+        step("availability exists; left as it is")
+    else:
+        territories = asc(config, "GET", "/v1/territories?limit=200")["data"]
+        ids = [t["id"] for t in territories]
+        asc(config, "POST", "/v2/appAvailabilities", {
+            "data": {"type": "appAvailabilities",
+                     "attributes": {"availableInNewTerritories": True},
+                     "relationships": {
+                         "app": {"data": {"type": "apps", "id": app["id"]}},
+                         "territoryAvailabilities": {"data": [
+                             {"type": "territoryAvailabilities", "id": f"${{t-{t}}}"} for t in ids]}}},
+            "included": [{"type": "territoryAvailabilities", "id": f"${{t-{t}}}",
+                          "attributes": {"available": True},
+                          "relationships": {"territory": {"data": {
+                              "type": "territories", "id": t}}}} for t in ids]})
+        step(f"availability: all {len(ids)} territories, and new ones")
+
+    # Content rights, on the app.
+    rights = props.get("contentRights") or "DOES_NOT_USE_THIRD_PARTY_CONTENT"
+    asc(config, "PATCH", f"/v1/apps/{app['id']}", {"data": {
+        "type": "apps", "id": app["id"], "attributes": {"contentRightsDeclaration": rights}}})
+    step(f"content rights: {rights}")
+
+    # Release type, on the editable version.
+    version = editable_version(config, app)
+    release = props.get("releaseType") or "MANUAL"
+    asc(config, "PATCH", f"/v1/appStoreVersions/{version['id']}", {"data": {
+        "type": "appStoreVersions", "id": version["id"], "attributes": {"releaseType": release}}})
+    step(f"version {version['attributes']['versionString']}: release type {release}")
+
+    # Review contact, when the properties carry one. A phone is not optional in
+    # practice: the create is refused with a 409 without it.
+    contact = {key: props.get(key, "") for key in
+               ("reviewFirstName", "reviewLastName", "reviewEmail", "reviewPhone")}
+    if all(contact.values()):
+        notes_file = ROOT / "store" / "review-notes.txt"
+        attrs = {
+            "contactFirstName": contact["reviewFirstName"],
+            "contactLastName": contact["reviewLastName"],
+            "contactEmail": contact["reviewEmail"],
+            "contactPhone": contact["reviewPhone"],
+            "demoAccountRequired": False,
+        }
+        if notes_file.exists():
+            attrs["notes"] = notes_file.read_text(encoding="utf-8").strip()
+        detail = None
+        try:
+            detail = asc(config, "GET",
+                         f"/v1/appStoreVersions/{version['id']}/appStoreReviewDetail").get("data")
+        except SystemExit as error:
+            if "404" not in str(error):
+                raise
+        if detail:
+            asc(config, "PATCH", f"/v1/appStoreReviewDetails/{detail['id']}", {"data": {
+                "type": "appStoreReviewDetails", "id": detail["id"], "attributes": attrs}})
+        else:
+            asc(config, "POST", "/v1/appStoreReviewDetails", {"data": {
+                "type": "appStoreReviewDetails", "attributes": attrs,
+                "relationships": {"appStoreVersion": {"data": {
+                    "type": "appStoreVersions", "id": version["id"]}}}}})
+        step(f"review contact: {contact['reviewFirstName']} {contact['reviewLastName']}, "
+             f"{contact['reviewEmail']}, notes {'from store/review-notes.txt' if 'notes' in attrs else 'none'}")
+    else:
+        missing = [k for k, v in contact.items() if not v]
+        step(f"review contact skipped: {', '.join(missing)} not in asc.properties")
+
+    print(f"\n{GREEN}declarations set{RESET} {DIM}-- still console only: App Privacy "
+          f"(Get Started, no data collected, Save, Publish){RESET}")
+
+
 def dry_run(config: Config) -> None:
     """Authenticate and read state back. Changes nothing."""
     bundles = asc(config, "GET",
@@ -939,6 +1118,9 @@ def main() -> int:
     parser.add_argument("--listing", action="store_true",
                         help="push store/listing/ and store/screenshots/ to the editable "
                              "App Store version (never submits)")
+    parser.add_argument("--declare", action="store_true",
+                        help="set the age rating (4+), free price, availability in every "
+                             "territory, content rights, release type and review contact")
     parser.add_argument("--locale", default=None,
                         help="listing locale for --listing (default: asc.properties locale, "
                              "else en-US)")
@@ -976,9 +1158,11 @@ def main() -> int:
         testflight(config)
     if args.listing:
         push_listing(config, args.locale or properties().get("locale") or "en-US")
+    if args.declare:
+        declare(config)
 
     if not any([args.dry_run, args.register_bundle_id, args.sign, args.export_options,
-                args.upload, args.add_tester, args.testflight, args.listing]):
+                args.upload, args.add_tester, args.testflight, args.listing, args.declare]):
         parser.print_help()
         return 1
     return 0
