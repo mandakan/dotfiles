@@ -56,7 +56,13 @@ def subtract(live, public, path, lost):
                 d = subtract(v, public[k], f"{path}/{k}", lost)
                 if d is not None:
                     out[k] = d
-        lost.extend(f"{path}/{k}" for k in public if k not in live)
+        for k in public:
+            if k in live:
+                continue
+            if path == "/enabledPlugins":
+                out[k] = False  # a plugin the host turned off: disable it in the overlay
+            else:
+                lost.append(f"{path}/{k}")
         return out or None
     if isinstance(live, list) and isinstance(public, list):
         lost.extend(f"{path}[] {json.dumps(x)[:80]}" for x in public if x not in live)
