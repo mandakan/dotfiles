@@ -33,4 +33,4 @@ repos:
       - id: shellcheck
         args: [--severity=error]
         # shellcheck doesn't understand zsh — skip zsh-only files.
-        exclude: '^(\.zshrc|\.p10k\.zsh)$'
+        exclude: '^home/(dot_zshrc|dot_p10k\.zsh)$'
