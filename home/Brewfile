@@ -9,7 +9,6 @@
 # homebrew/bundle and homebrew/services were absorbed into core Homebrew
 # in early 2025 — no longer tap them, the commands work out of the box.
 tap "dopplerhq/cli"
-tap "infisical/get-cli"
 tap "mistertea/et"
 
 # ─── CLI tools ───────────────────────────────────────────────────────────
@@ -42,7 +41,6 @@ brew "pkgconf"
 brew "awscli"
 brew "azure-cli"
 brew "dopplerhq/cli/doppler"
-brew "infisical/get-cli/infisical"
 brew "mistertea/et/et"
 
 # ─── Containers / VMs ────────────────────────────────────────────────────

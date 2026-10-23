@@ -1,0 +1,30 @@
+{{- /*
+  ~/.claude/settings.json is rendered from layers, later ones winning:
+    1. .claude-settings/base.json            shared by every host (public)
+    2. .claude-settings/<os>.json            darwin or linux, if present (public)
+    3. ~/.config/chezmoi/claude-settings.local.json
+                                             this host only, never committed
+  Objects merge key by key, arrays are concatenated without duplicates, and
+  scalars from a later layer replace earlier ones. Keep anything private
+  (internal hostnames, remotes, environment ids) in layer 3: this repo is public.
+*/ -}}
+{{- $dir := joinPath .chezmoi.sourceDir ".claude-settings" -}}
+{{- $layers := list (include (joinPath $dir "base.json") | fromJson) -}}
+{{- $os := joinPath $dir (printf "%s.json" .chezmoi.os) -}}
+{{- if stat $os -}}
+{{-   $layers = append $layers (include $os | fromJson) -}}
+{{- end -}}
+{{- $local := joinPath .chezmoi.homeDir ".config/chezmoi/claude-settings.local.json" -}}
+{{- if stat $local -}}
+{{-   $layers = append $layers (include $local | fromJson) -}}
+{{- end -}}
+{{- $merge := `
+def m(a; b):
+  if (a|type) == "object" and (b|type) == "object" then
+    reduce (b|to_entries[]) as $e (a; .[$e.key] = m(a[$e.key]; $e.value))
+  elif (a|type) == "array" and (b|type) == "array" then
+    reduce (a + b)[] as $x ([]; if any(.[]; . == $x) then . else . + [$x] end)
+  elif b == null then a
+  else b end;
+reduce .[1:][] as $layer (.[0]; m(.; $layer))` -}}
+{{ index (jq $merge $layers) 0 | toPrettyJson "  " }}

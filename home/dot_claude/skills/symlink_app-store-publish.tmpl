@@ -1,0 +1,5 @@
+{{- /* The store-publishing skills live in gelopard/tools (private), which the
+       games' copies are synced from. Linked only when that checkout exists;
+       an empty target makes chezmoi leave no link. */ -}}
+{{- $src := joinPath (env "GELOPARD_TOOLS" | default (joinPath .chezmoi.homeDir "work/tools")) "app-store-publish" -}}
+{{- if stat $src }}{{ $src }}{{ end -}}
