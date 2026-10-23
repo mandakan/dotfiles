@@ -1,0 +1,104 @@
+#!/usr/bin/env python3
+"""Fold edits made to the live ~/.claude/settings.json back into the host overlay.
+
+Claude Code writes to ~/.claude/settings.json itself (/model, /config, plugin
+toggles, auto mode setup). chezmoi renders that file from the public layers in
+home/.claude-settings/ plus the untracked host overlay, so those edits would be
+lost on the next `chezmoi apply`. This script computes
+
+    overlay = live settings - public layers (base.json + <os>.json)
+
+and writes it to ~/.config/chezmoi/claude-settings.local.json, which is never
+committed. Run it whenever `chezmoi diff` shows changes to settings.json that
+should stay on this host only. For changes that belong to every host, edit
+home/.claude-settings/base.json instead.
+
+Usage: bin/capture-claude-settings [--dry-run]
+"""
+
+import json
+import os
+import platform
+import shutil
+import sys
+from pathlib import Path
+
+HOME = Path.home()
+LIVE = HOME / ".claude/settings.json"
+OVERLAY = HOME / ".config/chezmoi/claude-settings.local.json"
+LAYERS = Path(__file__).resolve().parent.parent / "home/.claude-settings"
+
+
+def merge(a, b):
+    """Same semantics as the settings.json.tmpl jq merge."""
+    if isinstance(a, dict) and isinstance(b, dict):
+        out = dict(a)
+        for k, v in b.items():
+            out[k] = merge(a.get(k), v)
+        return out
+    if isinstance(a, list) and isinstance(b, list):
+        out = []
+        for x in a + b:
+            if x not in out:
+                out.append(x)
+        return out
+    return a if b is None else b
+
+
+def subtract(live, public, path, lost):
+    """What live adds on top of public. Records what live dropped in `lost`."""
+    if isinstance(live, dict) and isinstance(public, dict):
+        out = {}
+        for k, v in live.items():
+            if k not in public:
+                out[k] = v
+            else:
+                d = subtract(v, public[k], f"{path}/{k}", lost)
+                if d is not None:
+                    out[k] = d
+        for k in public:
+            if k in live:
+                continue
+            if path == "/enabledPlugins":
+                out[k] = False  # a plugin the host turned off: disable it in the overlay
+            else:
+                lost.append(f"{path}/{k}")
+        return out or None
+    if isinstance(live, list) and isinstance(public, list):
+        lost.extend(f"{path}[] {json.dumps(x)[:80]}" for x in public if x not in live)
+        extra = [x for x in live if x not in public]
+        return extra or None
+    return None if live == public else live
+
+
+def main():
+    dry = "--dry-run" in sys.argv[1:]
+    os_name = {"Darwin": "darwin", "Linux": "linux"}.get(platform.system(), "")
+    public = json.loads((LAYERS / "base.json").read_text())
+    os_layer = LAYERS / f"{os_name}.json"
+    if os_layer.exists():
+        public = merge(public, json.loads(os_layer.read_text()))
+    live = json.loads(LIVE.read_text())
+
+    lost = []
+    overlay = subtract(live, public, "", lost) or {}
+    text = json.dumps(overlay, indent=2, ensure_ascii=False) + "\n"
+
+    if lost:
+        print("The live file drops these public entries. An overlay can only add or")
+        print("replace, so remove them from the public layers if they should go:")
+        for p in lost:
+            print(f"  {p}")
+    if dry:
+        sys.stdout.write(text)
+        return
+    OVERLAY.parent.mkdir(parents=True, exist_ok=True)
+    if OVERLAY.exists():
+        shutil.copy2(OVERLAY, OVERLAY.with_suffix(".json.bak"))
+    OVERLAY.write_text(text)
+    os.chmod(OVERLAY, 0o600)
+    print(f"wrote {OVERLAY} ({len(overlay)} top-level keys); run `chezmoi diff` to check")
+
+
+if __name__ == "__main__":
+    main()

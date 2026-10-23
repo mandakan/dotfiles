@@ -1,0 +1,18 @@
+set atblanks
+set autoindent
+set cutfromcursor
+set softwrap
+set tabsize 2
+
+# Syntax highlighting. Nano 9.0+ rejects `include` inside an included file, so
+# the platform-specific include line is rendered straight into ~/.nanorc.
+{{- if eq .chezmoi.os "darwin" }}
+{{-   if lookPath "brew" }}
+{{-     $cellar := output "brew" "--cellar" "nano" | trim }}
+{{-     if $cellar }}
+include "{{ $cellar }}/*/share/nano/*.nanorc"
+{{-     end }}
+{{-   end }}
+{{- else }}
+include "/usr/share/nano/*.nanorc"
+{{- end }}

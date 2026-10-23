@@ -187,3 +187,6 @@ export PATH="$ANDROID_HOME/emulator:$ANDROID_HOME/platform-tools:$ANDROID_HOME/c
 # ffmpeg-full is keg-only (conflicts with the slim ffmpeg formula); prepend
 # its bin so drawtext-capable ffmpeg is the host default (splitsmith overlays).
 export PATH="/opt/homebrew/opt/ffmpeg-full/bin:$PATH"
+
+# Host-only additions (installer snippets, machine paths). Never committed.
+[ -f "$HOME/.zshrc.local" ] && source "$HOME/.zshrc.local"
