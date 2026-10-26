@@ -19,12 +19,12 @@
 {{-   $layers = append $layers (include $local | fromJson) -}}
 {{- end -}}
 {{- $merge := `
-def m(a; b):
-  if (a|type) == "object" and (b|type) == "object" then
-    reduce (b|to_entries[]) as $e (a; .[$e.key] = m(a[$e.key]; $e.value))
-  elif (a|type) == "array" and (b|type) == "array" then
-    reduce (a + b)[] as $x ([]; if any(.[]; . == $x) then . else . + [$x] end)
-  elif b == null then a
-  else b end;
+def m($a; $b):
+  if ($a|type) == "object" and ($b|type) == "object" then
+    reduce ($b|to_entries[]) as $e ($a; .[$e.key] = m(.[$e.key]; $e.value))
+  elif ($a|type) == "array" and ($b|type) == "array" then
+    $a + ($b - $a)
+  elif $b == null then $a
+  else $b end;
 reduce .[1:][] as $layer (.[0]; m(.; $layer))` -}}
 {{ index (jq $merge $layers) 0 | toPrettyJson "  " }}
