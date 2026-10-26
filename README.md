@@ -104,6 +104,25 @@ chezmoi warns you before it does. To keep such a change:
 
 `chezmoi diff` shows whether the live file has drifted.
 
+### iTerm2 (macOS)
+
+`~/.config/iterm2/com.googlecode.iterm2.plist` is rendered from
+`home/dot_config/iterm2/`, and a chezmoi script points iTerm2 at that folder
+("Load preferences from a custom folder", save changes automatically) and
+installs the MesloLGS NF fonts the Default profile uses. Restart iTerm2 after
+the first apply.
+
+iTerm2 writes GUI changes back to that file, so `chezmoi diff` shows them as
+drift. To keep a change on every host:
+
+```sh
+chezmoi re-add ~/.config/iterm2/com.googlecode.iterm2.plist
+chezmoi cd && git commit -am "iterm2: ..." && git push
+```
+
+To discard it, run `chezmoi apply` and restart iTerm2. Keys prefixed `NoSync`,
+window frames and Sparkle updater state are host-local and are not in the repo.
+
 ### Migrating a host from the old symlink layout
 
 Before this repo moved to chezmoi, `install` symlinked files into the checkout.

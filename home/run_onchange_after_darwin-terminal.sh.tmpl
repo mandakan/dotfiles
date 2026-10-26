@@ -1,0 +1,44 @@
+{{- if eq .chezmoi.os "darwin" -}}
+#!/bin/bash
+# iTerm2: load (and auto-save) preferences from ~/.config/iterm2, which chezmoi
+# renders from home/dot_config/iterm2/. Takes effect on the next iTerm2 launch.
+# Also installs the MesloLGS NF fonts the Default profile uses; they come from
+# powerlevel10k's media repo (the same files `p10k configure` downloads),
+# pinned to a commit and sha256-verified.
+#
+# Runs again whenever this script's content changes (run_onchange_).
+set -euo pipefail
+
+defaults write com.googlecode.iterm2 PrefsCustomFolder -string "$HOME/.config/iterm2"
+defaults write com.googlecode.iterm2 LoadPrefsFromCustomFolder -bool true
+# "Save changes: Automatically" (iTermPreferenceSavePrefsModeAlways = 2), so GUI
+# tweaks land in ~/.config/iterm2 where `chezmoi re-add` can pick them up.
+defaults write com.googlecode.iterm2 NoSyncNeverRemindPrefsChangesLostForFile -bool true
+defaults write com.googlecode.iterm2 NoSyncNeverRemindPrefsChangesLostForFile_selection -int 2
+
+media_commit=145eb9fbc2f42ee408dacd9b22d8e6e0e553f83d
+fontdir="$HOME/Library/Fonts"
+mkdir -p "$fontdir"
+while IFS='|' read -r name want; do
+    target="$fontdir/MesloLGS NF $name.ttf"
+    if [[ -f $target ]] && [[ $(shasum -a 256 "$target" | cut -d' ' -f1) == "$want" ]]; then
+        continue
+    fi
+    echo "installing MesloLGS NF $name"
+    tmp=$(mktemp)
+    curl -fsSL -o "$tmp" "https://raw.githubusercontent.com/romkatv/powerlevel10k-media/$media_commit/MesloLGS%20NF%20${name// /%20}.ttf"
+    got=$(shasum -a 256 "$tmp" | cut -d' ' -f1)
+    if [[ $got != "$want" ]]; then
+        rm -f "$tmp"
+        echo "checksum mismatch for MesloLGS NF $name: got $got, want $want" >&2
+        exit 1
+    fi
+    install -m 0644 "$tmp" "$target"
+    rm -f "$tmp"
+done <<'FONTS'
+Regular|d97946186e97f8d7c0139e8983abf40a1d2d086924f2c5dbf1c29bd8f2c6e57d
+Bold|b6c0199cf7c7483c8343ea020658925e6de0aeb318b89908152fcb4d19226003
+Italic|6f357bcbe2597704e157a915625928bca38364a89c22a4ac36e7a116dcd392ef
+Bold Italic|56b4131adecec052c4b324efb818dd326d586dbc316fc68f98f1cae2eb8d1220
+FONTS
+{{- end }}
