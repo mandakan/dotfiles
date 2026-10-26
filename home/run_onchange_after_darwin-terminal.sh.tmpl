@@ -51,4 +51,28 @@ Bold|b6c0199cf7c7483c8343ea020658925e6de0aeb318b89908152fcb4d19226003
 Italic|6f357bcbe2597704e157a915625928bca38364a89c22a4ac36e7a116dcd392ef
 Bold Italic|56b4131adecec052c4b324efb818dd326d586dbc316fc68f98f1cae2eb8d1220
 FONTS
+
+# macOS 27 no longer activates fonts just because they sit in ~/Library/Fonts
+# (iTerm2 fell back to Menlo on a fresh host). Register them persistently for
+# this user, which is what Font Book's install does. Already-registered files
+# are reported as such and are fine.
+osascript -l JavaScript - <<'JXA'
+ObjC.import("CoreText"); ObjC.import("Foundation");
+var dir = $.NSHomeDirectory().js + "/Library/Fonts";
+var files = ObjC.deepUnwrap($.NSFileManager.defaultManager.contentsOfDirectoryAtPathError(dir, null))
+    .filter(function (f) { return /^(MesloLGS NF .*|HackNerdFont.*)\.ttf$/.test(f); });
+var fresh = 0, already = 0, failed = [];
+files.forEach(function (f) {
+    var err = Ref();
+    if ($.CTFontManagerRegisterFontsForURL($.NSURL.fileURLWithPath(dir + "/" + f), 2 /* persistent */, err)) {
+        fresh++;
+    } else if ($.CFErrorGetCode(err[0]) == 105 /* kCTFontManagerErrorAlreadyRegistered */) {
+        already++;
+    } else {
+        failed.push(f + ": " + ObjC.deepUnwrap($.CFErrorCopyDescription(err[0])));
+    }
+});
+if (fresh) console.log("registered " + fresh + " font file(s)");
+if (failed.length) { console.log("font registration failed:\n" + failed.join("\n")); ObjC.import("stdlib"); $.exit(1); }
+JXA
 {{- end }}
