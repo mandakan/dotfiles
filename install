@@ -17,6 +17,7 @@
 # overwrites a file that changed since it last wrote it.
 
 set -euo pipefail
+trap 'printf "\033[1;31m✗\033[0m install aborted at line %s; re-run ./install after fixing the step above\n" "$LINENO" >&2' ERR
 
 DOTFILES="$(cd "$(dirname "$0")" && pwd)"
 OS="$(uname -s)"
@@ -222,7 +223,12 @@ fi
 
 if [[ $OS == Darwin ]]; then
     log "running brew bundle (this may take a while)"
-    brew bundle --file="$DOTFILES/home/Brewfile"
+    # Not fatal: a single mas app (needs App Store sign-in) or vscode extension
+    # (needs `code` on PATH) failing must not stop the dotfiles from being
+    # applied below. Re-run ./install once the cause is fixed.
+    if ! brew bundle --file="$DOTFILES/home/Brewfile"; then
+        warn "brew bundle reported failures (see above); continuing with the dotfiles"
+    fi
 
     if command -v nano >/dev/null 2>&1; then
         actual=$(command -v nano)
