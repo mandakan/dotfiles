@@ -3,5 +3,5 @@ Brewfile.lock.json
 {{ if ne .chezmoi.os "darwin" -}}
 # macOS only
 .config/iterm2
-run_onchange_after_darwin-terminal.sh
+darwin-terminal.sh
 {{- end }}
