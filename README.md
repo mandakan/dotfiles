@@ -108,21 +108,23 @@ chezmoi warns you before it does. To keep such a change:
 
 `~/.config/iterm2/com.googlecode.iterm2.plist` is rendered from
 `home/dot_config/iterm2/`, and a chezmoi script points iTerm2 at that folder
-("Load preferences from a custom folder", save changes automatically) and
-installs the MesloLGS NF fonts the Default profile uses. Quit iTerm2 before
+("Load preferences from a custom folder", save changes: never) and installs
+the MesloLGS NF fonts the Default profile uses. Quit iTerm2 before
 the first apply (or re-run `chezmoi apply` after quitting it): a running
 iTerm2 saves its in-memory settings over the file as soon as the folder is
 enabled, and only reads the folder at launch.
 
-iTerm2 writes GUI changes back to that file, so `chezmoi diff` shows them as
-drift. To keep a change on every host:
+iTerm2 reads that file at launch and does not write it on its own. To keep a
+GUI change on every host, push it to the file first (Settings > General >
+Settings > "Save Now"), then:
 
 ```sh
 chezmoi re-add ~/.config/iterm2/com.googlecode.iterm2.plist
 chezmoi cd && git commit -am "iterm2: ..." && git push
 ```
 
-To discard it, run `chezmoi apply` and restart iTerm2. Keys prefixed `NoSync`,
+To discard a GUI change, restart iTerm2. If the file itself drifted, run
+`chezmoi apply` first. Keys prefixed `NoSync`,
 window frames and Sparkle updater state are host-local and are not in the repo.
 
 ### Migrating a host from the old symlink layout

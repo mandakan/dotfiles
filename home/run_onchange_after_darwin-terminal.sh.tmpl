@@ -18,10 +18,13 @@ fi
 
 defaults write com.googlecode.iterm2 PrefsCustomFolder -string "$HOME/.config/iterm2"
 defaults write com.googlecode.iterm2 LoadPrefsFromCustomFolder -bool true
-# "Save changes: Automatically" (iTermPreferenceSavePrefsModeAlways = 2), so GUI
-# tweaks land in ~/.config/iterm2 where `chezmoi re-add` can pick them up.
+# "Save changes: Never" (iTermPreferenceSavePrefsModeNever = 1). The folder is
+# the source of truth; iTerm2 reads it at launch and never writes it on its
+# own. With "Automatically" a launch that could not resolve the profile font
+# silently rewrote the file with the substitute (Menlo). To capture a GUI
+# change: Settings > General > Settings > "Save Now", then `chezmoi re-add`.
 defaults write com.googlecode.iterm2 NoSyncNeverRemindPrefsChangesLostForFile -bool true
-defaults write com.googlecode.iterm2 NoSyncNeverRemindPrefsChangesLostForFile_selection -int 2
+defaults write com.googlecode.iterm2 NoSyncNeverRemindPrefsChangesLostForFile_selection -int 1
 
 media_commit=145eb9fbc2f42ee408dacd9b22d8e6e0e553f83d
 fontdir="$HOME/Library/Fonts"
