@@ -9,6 +9,13 @@
 # Runs again whenever this script's content changes (run_onchange_).
 set -euo pipefail
 
+# A running iTerm2 only has whatever is in its memory. Once the two keys below
+# are set it saves that over ~/.config/iterm2 on its next change, replacing
+# the file chezmoi just wrote. So it must be restarted before it saves.
+if pgrep -xq iTerm2; then
+    printf '\033[1;33m!\033[0m iTerm2 is running. Quit it (Cmd+Q), run `chezmoi apply` again, then relaunch iTerm2.\n' >&2
+fi
+
 defaults write com.googlecode.iterm2 PrefsCustomFolder -string "$HOME/.config/iterm2"
 defaults write com.googlecode.iterm2 LoadPrefsFromCustomFolder -bool true
 # "Save changes: Automatically" (iTermPreferenceSavePrefsModeAlways = 2), so GUI
