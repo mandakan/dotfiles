@@ -71,6 +71,14 @@ brew bundle cleanup --file=~/dotfiles/home/Brewfile
 brew bundle cleanup --file=~/dotfiles/home/Brewfile --force
 ```
 
+`dump --force` rewrites the file and drops the skip guards described below, so
+review the diff and restore them before committing.
+
+To leave a package out on one host, add its name to the untracked
+`~/.config/chezmoi/brewfile.skip`, one per line. This works for the entries
+that have a guard in the Brewfile; `visual-studio-code` also skips the VS Code
+extensions.
+
 ## Per-host settings
 
 `~/.claude/settings.json` is rendered from three layers, later ones winning:

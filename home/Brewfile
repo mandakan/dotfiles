@@ -4,6 +4,13 @@
 #   brew bundle --file=~/Brewfile
 #   brew bundle cleanup --file=~/Brewfile    # preview uninstalls
 #   brew bundle cleanup --file=~/Brewfile --force
+#
+# dump --force rewrites this file and drops the skip guards below, so review
+# the diff and restore them before committing.
+
+# Packages one host does not want, one name per line, in an untracked file.
+skip_file = File.expand_path("~/.config/chezmoi/brewfile.skip")
+skip = File.exist?(skip_file) ? File.readlines(skip_file, chomp: true) : []
 
 # ─── Taps ────────────────────────────────────────────────────────────────
 # homebrew/bundle and homebrew/services were absorbed into core Homebrew
@@ -63,7 +70,7 @@ brew "sox"
 brew "cryptography"
 brew "go"
 brew "gtk4"
-brew "hugo"
+brew "hugo" unless skip.include?("hugo")
 brew "node"
 brew "nvm"
 brew "pnpm"
@@ -75,14 +82,14 @@ cask "temurin@21"
 cask "android-commandlinetools"
 
 # ─── Casks ───────────────────────────────────────────────────────────────
-cask "arc"
-cask "discord"
+cask "arc" unless skip.include?("arc")
+cask "discord" unless skip.include?("discord")
 cask "font-hack-nerd-font"
 cask "iterm2"
 cask "lm-studio"
-cask "obsidian"
-cask "slack"
-cask "visual-studio-code"
+cask "obsidian" unless skip.include?("obsidian")
+cask "slack" unless skip.include?("slack")
+cask "visual-studio-code" unless skip.include?("visual-studio-code")
 
 # ─── Creative ────────────────────────────────────────────────────────────
 cask "audacity"
@@ -90,7 +97,7 @@ cask "godot"
 cask "inkscape"
 cask "mactex-no-gui"
 cask "spotify"
-cask "steam"
+cask "steam" unless skip.include?("steam")
 
 # ─── App Store ───────────────────────────────────────────────────────────
 mas "Amphetamine",            id: 937984704
@@ -108,28 +115,30 @@ mas "Windows App",            id: 1295203466
 mas "Xcode",                  id: 497799835
 
 # ─── VS Code extensions ──────────────────────────────────────────────────
-vscode "anthropic.claude-code"
-vscode "bierner.markdown-mermaid"
-vscode "continue.continue"
-vscode "docker.docker"
-vscode "github.vscode-github-actions"
-vscode "github.vscode-pull-request-github"
-vscode "mechatroner.rainbow-csv"
-vscode "ms-python.debugpy"
-vscode "ms-python.python"
-vscode "ms-python.vscode-pylance"
-vscode "ms-python.vscode-python-envs"
-vscode "ms-vscode-remote.remote-ssh"
-vscode "ms-vscode-remote.remote-ssh-edit"
-vscode "ms-vscode.cmake-tools"
-vscode "ms-vscode.cpp-devtools"
-vscode "ms-vscode.cpptools"
-vscode "ms-vscode.cpptools-extension-pack"
-vscode "ms-vscode.cpptools-themes"
-vscode "ms-vscode.remote-explorer"
-vscode "mtxr.sqltools"
-vscode "redhat.vscode-yaml"
-vscode "tamasfe.even-better-toml"
+unless skip.include?("visual-studio-code")
+  vscode "anthropic.claude-code"
+  vscode "bierner.markdown-mermaid"
+  vscode "continue.continue"
+  vscode "docker.docker"
+  vscode "github.vscode-github-actions"
+  vscode "github.vscode-pull-request-github"
+  vscode "mechatroner.rainbow-csv"
+  vscode "ms-python.debugpy"
+  vscode "ms-python.python"
+  vscode "ms-python.vscode-pylance"
+  vscode "ms-python.vscode-python-envs"
+  vscode "ms-vscode-remote.remote-ssh"
+  vscode "ms-vscode-remote.remote-ssh-edit"
+  vscode "ms-vscode.cmake-tools"
+  vscode "ms-vscode.cpp-devtools"
+  vscode "ms-vscode.cpptools"
+  vscode "ms-vscode.cpptools-extension-pack"
+  vscode "ms-vscode.cpptools-themes"
+  vscode "ms-vscode.remote-explorer"
+  vscode "mtxr.sqltools"
+  vscode "redhat.vscode-yaml"
+  vscode "tamasfe.even-better-toml"
+end
 
 # ─── uv tools ────────────────────────────────────────────────────────────
 uv "splitsmith"
